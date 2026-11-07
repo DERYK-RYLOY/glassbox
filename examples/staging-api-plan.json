@@ -1,0 +1,70 @@
+{
+  "title": "Ship a JWT-authenticated staging API",
+  "goal": "Deploy a staging API at api.staging.example.com with JWT auth behind TLS",
+  "context": "Greenfield service; no staging infra exists yet. Team of 3, 2-week window.",
+  "constraints": ["No production data", "Must pass security review before merge"],
+  "assumptions": [
+    "DNS for staging.example.com is already delegated",
+    "Team has admin access to the cloud account",
+    "Company SSO can issue JWTs via standard OIDC"
+  ],
+  "steps": [
+    {
+      "id": "1",
+      "action": "Backup/snapshot current cloud config and create staging subnet",
+      "rationale": "Isolate blast radius; allow clean rollback",
+      "verify": "Subnet exists; snapshot ID recorded; rollback dry-run succeeds",
+      "depends_on": [],
+      "risk": "low"
+    },
+    {
+      "id": "2",
+      "action": "Scaffold service and Dockerfile; add /healthz endpoint",
+      "rationale": "Smallest deployable unit proves the pipeline end-to-end",
+      "verify": "Container builds locally; /healthz returns 200",
+      "depends_on": ["1"],
+      "risk": "low"
+    },
+    {
+      "id": "3",
+      "action": "Wire JWT validation middleware (OIDC, pinned issuer, short clock skew)",
+      "rationale": "Auth is the highest-risk surface; do it before anything user-facing",
+      "verify": "Expired/forged/tampered tokens all rejected with 401; audit log entry written",
+      "depends_on": ["2"],
+      "risk": "high"
+    },
+    {
+      "id": "4",
+      "action": "Provision TLS via managed cert; deploy behind load balancer",
+      "rationale": "TLS terminates secrets in transit; managed certs kill a whole failure class",
+      "verify": "curl -v shows valid cert chain; HTTP→HTTPS redirect works",
+      "depends_on": ["3"],
+      "risk": "medium"
+    },
+    {
+      "id": "5",
+      "action": "Run smoke tests + authz matrix; security review; then cut over DNS",
+      "rationale": "Gate traffic until positive and negative tests pass; review catches blind spots",
+      "verify": "All smoke tests green; review sign-off; synthetic user completes login flow",
+      "depends_on": ["4"],
+      "risk": "medium"
+    }
+  ],
+  "risks": [
+    {
+      "description": "JWT validation flaw lets forged tokens through",
+      "severity": "high",
+      "mitigation": "Pinned issuer + JWKS cache with short TTL; mandatory pen-test of auth middleware before cutover"
+    },
+    {
+      "description": "Staging config drifts from production",
+      "severity": "medium",
+      "mitigation": "Single IaC repo; CI check that staging plan is a pure superset of prod"
+    }
+  ],
+  "success_criteria": [
+    "https://api.staging.example.com/healthz returns 200 over valid TLS",
+    "Unauthenticated request returns 401",
+    "Signed-in smoke test passes with a real OIDC token"
+  ]
+}
