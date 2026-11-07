@@ -31,13 +31,22 @@ Requires Python 3.10+ and the `mcp` package:
 pip install mcp
 ```
 
-For the native Lua backend (optional — a Python fallback ships in the server):
+Lua 5.4+ recommended (already installed at `C:\Users\RYLOY\AppData\Local\Programs\Lua\bin\lua.exe` if you ran the installer). The server auto-detects it; without it the Python fallback runs. Set `GLASSBOX_LUA` to point at a specific `lua.exe`.
 
-```powershell
-winget install --id BrianSidebotham.Lua   # or any Lua 5.3+
-```
+## Status & testing (as of v0.1)
 
-If `lua` is on PATH, the Lua core is authoritative. Set `GLASSBOX_FORCE_PYTHON=1` to force the fallback.
+This repo is git-tracked. Honesty section — what's proven vs. what isn't:
+
+| Claim | Status |
+|---|---|
+| Lua core (validate/verify/trust/render/explain) | ✅ verified on this machine, Lua 5.4.6 |
+| Iron Swarm v2 recursion (REVISE→feedback→PASS) | ✅ verified end-to-end |
+| GB1 parser vs. *messy* LLM output (fences, CRLF, prose wrappers) | ✅ `tests/adversarial_gb1.py` — authored by an LLM in-session, not canned clean strings |
+| Installed in OpenCode as MCP server `glassbox` | ✅ configured globally via `opencode mcp add`; live handshake tested; tools callable as `glassbox_*` in Code Mode |
+| Swarm vs. a *real external* LLM at scale | ❌ not yet — every live test used mock/in-session output. First real run will likely surface prompt tuning needs |
+| Parallelism | Python-side (thread pool per phase); Lua is sequential. "Agents run in parallel" = true within each bridge call |
+
+**Backend resolution order:** `GLASSBOX_LUA` env → `lua` on PATH → common install paths (`...\AppData\Local\Programs\Lua\bin\lua.exe`) → Python fallback. Check with `glassbox_status`.
 
 ## Use it with an MCP-capable AI CLI
 
@@ -68,6 +77,31 @@ Add to your MCP client config (OpenCode / Claude Code / Cursor / others — same
 | `glassbox_swarm` | **Iron Swarm** — 3 scouts ∥ → 5 analysts ∥ → 2 architects ∥ → lead arbitration, in GB1 wire format |
 
 The intended flow: AI fills a skeleton → `glassbox_verify_plan` → fix issues → `glassbox_explain` presented to the user. For hard problems, use `glassbox_swarm` — parallel subagents do the heavy lifting and return receipts from every agent.
+
+## OpenCode integration (already done on this machine)
+
+```powershell
+opencode mcp add glassbox --global -- python C:\Users\RYLOY\glassbox\python\glassbox_server.py
+```
+
+Verify: `opencode mcp list` (shows `glassbox`). Tools are exposed under the `glassbox` Code Mode group; if your session shows `pending`, open OpenCode and check `/mcps` — no restart needed.
+
+To activate the swarm against a real model, give the server an endpoint. Add to the server's `environment` in `opencode.jsonc` or set before launching OpenCode:
+
+```powershell
+$env:GLASSBOX_LLM_BASE = "http://localhost:11434/v1"   # Ollama, or https://api.openai.com/v1
+$env:GLASSBOX_LLM_MODEL = "llama3.1"
+$env:GLASSBOX_LLM_KEY  = "ollama"
+```
+
+Or C:\Users\RYLOY\.config\opencode\opencode.jsonc:
+```jsonc
+{ "mcp": { "servers": { "glassbox": { "type": "local",
+  "command": ["python", "C:\\Users\\RYLOY\\glassbox\\python\\glassbox_server.py"],
+  "environment": { "GLASSBOX_LLM_BASE": "http://localhost:11434/v1",
+                  "GLASSBOX_LLM_MODEL": "llama3.1",
+                  "GLASSBOX_LLM_KEY": "ollama" } } } } }
+```
 
 ## Try it without any AI client
 

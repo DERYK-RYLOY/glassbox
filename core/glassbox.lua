@@ -102,12 +102,13 @@ local function encode_value(v)
       else return string.format('\\u%04x', c:byte()) end
     end) .. '"'
   elseif t == 'table' then
-    -- array if all integer keys 1..n
+    -- array if all integer keys 1..n, or completely empty (we emit [] for empty tables)
     local n, is_array = 0, true
+    local empty = next(v) == nil
     for k in pairs(v) do
       if type(k) == 'number' and k == math.floor(k) and k >= 1 then n = n + 1 else is_array = false; break end
     end
-    if is_array then
+    if is_array or empty then
       local parts = {}
       for i = 1, n do parts[#parts+1] = encode_value(v[i]) end
       return '[' .. table.concat(parts, ',') .. ']'
@@ -128,7 +129,7 @@ function JSON.encode(v, pretty, indent)
   local pad1 = string.rep('  ', indent + 1)
   local t = type(v)
   if not pretty or t ~= 'table' then return encode_value(v) end
-  local is_array = #v > 0
+  local is_array = (#v > 0) or (next(v) == nil)
   local parts = {}
   if is_array then
     for _, val in ipairs(v) do

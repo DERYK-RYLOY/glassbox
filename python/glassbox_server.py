@@ -27,7 +27,25 @@ import glassbox_swarm as swarm_module  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 LUA_CORE = ROOT / "core" / "glassbox.lua"
-LUA_BIN = shutil.which("lua") or shutil.which("lua5.3") or shutil.which("luajit")
+_COMMON_LUA_PATHS = [
+    r"C:\Users\RYLOY\AppData\Local\Programs\Lua\bin\lua.exe",
+    r"C:\Program Files\Lua\5.4\lua.exe",
+    r"C:\Program Files (x86)\Lua\5.4\lua.exe",
+]
+
+def find_lua() -> str | None:
+    env = os.environ.get("GLASSBOX_LUA")
+    if env:
+        return env
+    found = shutil.which("lua")
+    if found:
+        return found
+    for p in _COMMON_LUA_PATHS:
+        if Path(p).exists():
+            return p
+    return None
+
+LUA_BIN = find_lua()
 USE_LUA = bool(LUA_BIN) and LUA_CORE.exists() and not os.environ.get("GLASSBOX_FORCE_PYTHON")
 
 mcp = FastMCP("glassbox")
