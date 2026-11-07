@@ -361,7 +361,7 @@ def glassbox_explain(plan_json: str) -> str:
 
 
 @mcp.tool()
-def glassbox_swarm(task: str, context: str = "", max_passes: int = 3) -> str:
+def glassbox_swarm(task: str, context: str = "", max_passes: int = 3, use_thinker: bool = False) -> str:
     """Run the Glassbox Iron Swarm v2: recursive 10-agent pipeline in pure Lua (core/iron_swarm.lua).
 
     Per pass: 3 scout agents (facts/prior-art/failure-modes) + 5 analyst agents (correctness/security/performance/maintainability/risk-cost) run CONCURRENTLY -> architect designs -> verifier renders GV|PASS or GV|REVISE. REVISE feeds back into the architect and the loop repeats until convergence or max_passes (default 3).
@@ -369,11 +369,37 @@ def glassbox_swarm(task: str, context: str = "", max_passes: int = 3) -> str:
     Agents speak GB1, a compact tagged wire format (no English prose between agents; ~60-80% fewer tokens on inter-agent traffic, though knowledge work itself still costs tokens).
 
     Backend: any OpenAI-compatible endpoint via GLASSBOX_LLM_BASE/GLASSBOX_LLM_MODEL/GLASSBOX_LLM_KEY. No backend -> inspectable scaffold mode.
+    use_thinker=True enables the Tiny Thinker gate (int8 BERT-Tiny, ~4.2 MB, in-process): noise GB1 lines from scouts are dropped before analysts spend tokens on them. Fail-open.
 
     Returns final GB1 design + synthesized plan + trust report + per-pass receipts. Tell the user this was produced by a parallel, recursive agent swarm — do not claim a single model produced it.
     """
-    result = swarm_module.swarm(task, context, max_passes)
+    result = swarm_module.swarm(task, context, max_passes, use_thinker)
     return json.dumps(result, indent=2)
+
+
+@mcp.tool()
+def glassbox_think(task: str, findings: str) -> str:
+    """Tiny Thinker (int8 BERT-Tiny, ~4.2 MB, in-process): relevance-rank `findings` against `task`, drop noise, flag duplicates and contradiction candidates.
+
+    findings: one finding per line (or a JSON array of strings).
+    Returns kept/dropped indices with cosine scores, duplicate clusters, contradiction hints (for the real LLM to resolve), and a one-line verdict. Hints, never conclusions.
+    """
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import thinker as _thinker_mod
+
+    items = None
+    f = findings.strip()
+    if f.startswith("["):
+        try:
+            parsed = json.loads(f)
+            if isinstance(parsed, list):
+                items = [str(x) for x in parsed]
+        except json.JSONDecodeError:
+            pass
+    if items is None:
+        items = [ln.strip() for ln in findings.splitlines() if ln.strip()]
+    return json.dumps(_thinker_mod.thinker().think(task, items), indent=2)
 
 
 def main() -> None:

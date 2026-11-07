@@ -69,7 +69,7 @@ def _scaffold(task: str, context: str) -> dict:
     }
 
 
-def swarm(task: str, context: str = "", max_passes: int = 3) -> dict:
+def swarm(task: str, context: str = "", max_passes: int = 3, use_thinker: bool = False) -> dict:
     if not BACKEND_CONFIGURED:
         # still allow mock/testing backends reachable on the default port? No: honest scaffold.
         return _scaffold(task, context)
@@ -81,7 +81,8 @@ def swarm(task: str, context: str = "", max_passes: int = 3) -> dict:
             "or set GLASSBOX_LUA to its path."
         )
 
-    payload = json.dumps({"task": task, "context": context, "max_passes": int(max_passes)})
+    payload = json.dumps({"task": task, "context": context, "max_passes": int(max_passes),
+                          "use_thinker": bool(use_thinker)})
     proc = subprocess.run([lua, str(ENGINE), "run"], input=payload,
                           capture_output=True, text=True, timeout=1800)
     if proc.returncode != 0:

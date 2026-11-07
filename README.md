@@ -19,8 +19,16 @@ AI tools produce answers. Glassbox produces *auditable* answers:
 ```
 glassbox/
   core/glassbox.lua          # pure-Lua core: validate/verify/trust/render/explain (zero deps)
+  core/iron_swarm.lua        # pure-Lua recursive 10-agent engine (Iron Swarm v2)
   python/glassbox_server.py  # MCP server exposing the core as tools
+  python/glassbox_swarm.py   # bridge: drives the Lua engine from Python
+  python/llm_bridge.py       # concurrent HTTP to OpenAI-compatible endpoints
+  python/thinker.py          # Tiny Thinker: ~4.2 MB int8 BERT-Tiny, in-process
+  python/thinker_gate.py     # gate used by Iron Swarm to filter scout noise
+  python/setup_thinker.py    # rebuild the int8 model artifact
+  python/models/             # thinker.int8.onnx (4.21 MB) + vocab
   examples/staging-api-plan.json
+  tests/                     # adversarial_gb1.py, thinker_gate_test.py
 ```
 
 ## Install
@@ -47,6 +55,28 @@ This repo is git-tracked. Honesty section — what's proven vs. what isn't:
 | Parallelism | Python-side (thread pool per phase); Lua is sequential. "Agents run in parallel" = true within each bridge call |
 
 **Backend resolution order:** `GLASSBOX_LUA` env → `lua` on PATH → common install paths (`...\AppData\Local\Programs\Lua\bin\lua.exe`) → Python fallback. Check with `glassbox_status`.
+
+## Tiny Thinker (int8 BERT-Tiny, ~4.2 MB, in-process)
+
+`GLASSBOX`'s cheapest cognitive layer — and an honest label matters here: **the Tiny Thinker does not reason.** It does instant semantic triage so the expensive model spends its tokens on signal:
+
+- **Relevance gating** — scores every GB1 scout line against the task; noise below threshold (default 0.60) never reaches analysts. Measured in-session: the line `FACT|10|Bananas are berries botanically` scored 0.55 vs ~0.80 for real findings and was filtered; analysts saw none of it.
+- **Dedup** — clusters near-duplicate findings so analysts don't re-read the same fact four times.
+- **Contradiction hints** — flags same-meaning/opposite-polarity pairs (it caught `Counters reset on restart` vs `Restart does not reset counters`, sim 0.89). Hints for the LLM to resolve, never verdicts.
+
+Sizes, because "5 MB" was the brief: `python/models/thinker.int8.onnx` = **4.21 MB** (prajjwal1/bert-tiny: 2 layers, 128 hidden, quantized dynamic-int8 via ONNX Runtime). Runs in-process on CPU, zero network. Rebuild with `python python/setup_thinker.py`.
+
+**Wire it in:**
+
+```python
+tools.glassbox.glassbox_think({"task": "...", "findings": "line per finding, or JSON array"})
+# or in the swarm:
+tools.glassbox.glassbox_swarm({"task": "...", "context": "...", "use_thinker": true})
+```
+
+`use_thinker=true` runs the gate after scouts each pass. Fail-open: if the gate or model is missing, analysts get the unfiltered findings and the pass is marked accordingly.
+
+**Honest limits:** bert-tiny's ranking separation is narrow (~0.55–0.82 for this task family) — the 0.60 threshold was tuned in-session, not validated across domains. Treat its verdicts as strong priors, not ground truth; contradiction output is heuristic (negation tokens + cosine). Upgrade path: swap `thinker.py`'s session for a larger int8 encoder without changing the gate API.
 
 ## Use it with an MCP-capable AI CLI
 

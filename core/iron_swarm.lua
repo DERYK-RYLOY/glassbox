@@ -125,10 +125,52 @@ local function bridge_path()
   return core_dir .. "/../python/llm_bridge.py"
 end
 
+local function thinker_gate_path()
+  return core_dir .. "/../python/thinker_gate.py"
+end
+
 local function _temp_file(suffix)
   local tmp = os.getenv("TEMP") or os.getenv("TMP") or "."
   local name = string.format("%s/glassbox_%d_%s_%s.json", tmp, os.time(), tostring(math.random(1, 1e9)), suffix)
   return name
+end
+
+-- Call the Tiny Thinker gate (python subprocess). Fail-open: returns nil on any error.
+local function call_thinker(task, items, threshold)
+  math.randomseed(os.time() + os.clock() * 1000)
+  local req_file, res_file = _temp_file("treq"), _temp_file("tres")
+  local fh = io.open(req_file, "w")
+  if not fh then return nil end
+  fh:write(JSON.encode({ task = task, items = items, keep_threshold = threshold or 0.30 }))
+  fh:close()
+  local py = os.getenv("GLASSBOX_PYTHON") or "python"
+  local ok = os.execute(string.format('%s "%s" < "%s" > "%s"', py, thinker_gate_path(), req_file, res_file))
+  os.remove(req_file)
+  if not ok then
+    os.remove(res_file)
+    return nil
+  end
+  local rfh = io.open(res_file, "r")
+  local raw = rfh and rfh:read("*a") or nil
+  if rfh then rfh:close() end
+  os.remove(res_file)
+  if not raw then return nil end
+  local data = JSON.decode(raw)
+  return data
+end
+
+local function gb1_content_lines(outputs)
+  local items, meta = {}, {}
+  for role, out in pairs(outputs) do
+    for raw in (out or ""):gmatch("[^\n]+") do
+      local line = raw:gsub("^%s+", ""):gsub("%s+$", "")
+      if line:match("^FACT|") or line:match("^RISK|") then
+        items[#items + 1] = line
+        meta[#meta + 1] = role
+      end
+    end
+  end
+  return items, meta
 end
 
 local function call_agents(requests)
@@ -190,6 +232,37 @@ local function run_pass(state, pass_no)
   end
   local scout_out, meta = call_agents(requests)
   for role, out in pairs(scout_out) do findings[role] = out end
+
+  -- Tiny Thinker gate: drop noise GB1 lines before analysts spend tokens on them
+  local thinker_stats = nil
+  if state.use_thinker then
+    local items, owners = gb1_content_lines(findings)
+    if #items > 0 then
+      local gate = call_thinker(state.task, items, state.thinker_threshold)
+      if gate and gate.kept_indices then
+        local kept = {}
+        local by_role = {}
+        for _, idx in ipairs(gate.kept_indices) do
+          local line = items[idx + 1]  -- Lua arrays are 1-based; json is 0-based
+          local role = owners[idx + 1]
+          if line and role then
+            by_role[role] = by_role[role] or {}
+            by_role[role][#by_role[role] + 1] = line
+          end
+        end
+        local rebuilt = {}
+        for role, lines in pairs(by_role) do
+          rebuilt[role] = table.concat(lines, "\n")
+        end
+        if next(rebuilt) ~= nil then
+          findings = rebuilt
+          thinker_stats = gate.stats
+        end
+      else
+        thinker_stats = { note = "thinker gate unavailable — findings unfiltered (fail-open)" }
+      end
+    end
+  end
   local merged_findings = merge_findings(findings)
 
   -- Phase 2: analysts (5 agents, one concurrent bridge call)
@@ -243,6 +316,7 @@ local function run_pass(state, pass_no)
     analysts = analyst_out,
     artifact = artifact,
     verifier = verdict_raw,
+    thinker = thinker_stats,
   }
   state.agents_run = state.agents_run + 3 + 5 + 1 + 1
   state.feedback = table.concat(feedback_lines, "\n")
@@ -312,6 +386,8 @@ function IS.run(opts)
     history = {}, feedback = nil, agents_run = 0,
   }
   local max_passes = tonumber(opts.max_passes) or 3
+  state.use_thinker = opts.use_thinker and true or false
+  state.thinker_threshold = tonumber(opts.thinker_threshold) or 0.60
   local started = os.clock()
 
   local converged, passes = false, 0
