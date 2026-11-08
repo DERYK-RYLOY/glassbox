@@ -1,4 +1,4 @@
-"""Glassbox — reasoning, planning and explanation layer for AI CLIs.
+"""Glassbox - reasoning, planning and explanation layer for AI CLIs.
 
 Python MCP server. Exposes the Glassbox Lua core as MCP tools that any
 MCP-capable AI CLI/editor can call (OpenCode, Claude Code, Cursor, Aider...).
@@ -22,7 +22,7 @@ try:
 except ModuleNotFoundError:
     from mcp.server.mcpserver import MCPServer as FastMCP  # mcp v2+
 
-# Sibling module — the parallel-agent pipeline
+# Sibling module - the parallel-agent pipeline
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import glassbox_swarm as swarm_module  # noqa: E402
 
@@ -50,6 +50,119 @@ LUA_BIN = find_lua()
 USE_LUA = bool(LUA_BIN) and LUA_CORE.exists() and not os.environ.get("GLASSBOX_FORCE_PYTHON")
 
 mcp = FastMCP("glassbox")
+
+
+# --------------------------------------------------------------------------
+# Fault tolerance: tools NEVER raise into the MCP client.
+# Any failure becomes structured JSON the AI can read and act on.
+# --------------------------------------------------------------------------
+
+def _guard(fn):
+    """Wrap a tool so failures return {"error","hint"} JSON."""
+    def wrapper(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except ValueError as e:
+            return json.dumps({"error": str(e),
+                               "hint": "Fix the arguments (JSON must parse) and retry.",
+                               "tool": fn.__name__}, indent=2)
+        except Exception as e:
+            return json.dumps({"error": f"{type(e).__name__}: {e}",
+                               "hint": "This is a Glassbox bug or backend failure. "
+                                       "Retry once; if it persists, check glassbox_status.",
+                               "tool": fn.__name__}, indent=2)
+    wrapper.__name__ = fn.__name__
+    wrapper.__doc__ = fn.__doc__
+    wrapper.__wrapped__ = fn
+    return wrapper
+
+
+MAX_PAYLOAD_BYTES = 2 * 1024 * 1024  # 2 MB - generous for plans; bigger means something is wrong
+
+
+def _lenient_json_object(text):
+    """Parse a JSON object, repairing the mistakes AIs actually make."""
+    if isinstance(text, dict):
+        return text, None
+    if text is None:
+        return None, "empty input"
+    s = str(text).strip()
+    if s.startswith("\ufeff"):
+        s = s[1:]
+    if len(s.encode("utf-8", "ignore")) > MAX_PAYLOAD_BYTES:
+        return None, "payload exceeds 2 MB - split the work or summarize first"
+
+    # 1) strict parse
+    try:
+        obj = json.loads(s)
+        return (obj, None) if isinstance(obj, dict) else (None, "expected a JSON object, got " + type(obj).__name__)
+    except json.JSONDecodeError:
+        pass
+
+    # 2) extract the first balanced {...} block (strips prose around the JSON)
+    start = s.find("{")
+    while start != -1:
+        depth, in_str, esc = 0, False, False
+        for i in range(start, len(s)):
+            c = s[i]
+            if in_str:
+                if esc:
+                    esc = False
+                elif c == "\\":
+                    esc = True
+                elif c == '"':
+                    in_str = False
+            else:
+                if c == '"':
+                    in_str = True
+                elif c == "{":
+                    depth += 1
+                elif c == "}":
+                    depth -= 1
+                    if depth == 0:
+                        try:
+                            obj = json.loads(s[start:i + 1])
+                            if isinstance(obj, dict):
+                                return obj, None
+                        except json.JSONDecodeError:
+                            break
+        start = s.find("{", start + 1)
+
+    # 3) repair passes: smart quotes, trailing commas, raw newlines in strings
+    t = (s.replace("\u201c", '"').replace("\u201d", '"')
+          .replace("\u2018", "'").replace("\u2019", "'"))
+    import re as _re
+    t = _re.sub(r",(\s*[}\]])", r"\1", t)
+    start = t.find("{")
+    while start != -1:
+        depth, in_str, esc = 0, False, False
+        for i in range(start, len(t)):
+            c = t[i]
+            if in_str:
+                if esc:
+                    esc = False
+                elif c == "\\":
+                    esc = True
+                elif c == '"':
+                    in_str = False
+                elif c in "\n\r":
+                    pass  # keep raw newlines; strict parser will handle
+            else:
+                if c == '"':
+                    in_str = True
+                elif c == "{":
+                    depth += 1
+                elif c == "}":
+                    depth -= 1
+                    if depth == 0:
+                        try:
+                            obj = json.loads(t[start:i + 1])
+                            if isinstance(obj, dict):
+                                return obj, None
+                        except json.JSONDecodeError:
+                            break
+        start = t.find("{", start + 1)
+    return None, "unparseable plan JSON (even after repair attempts)"
 
 
 # --------------------------------------------------------------------------
@@ -96,9 +209,9 @@ def _validate_py(plan):
             if str(dep) not in by_id:
                 issue("error", "DANGLING_DEP", f"step {sid} depends on unknown step id: {dep}", sid)
     if not plan.get("success_criteria"):
-        issue("warning", "NO_SUCCESS_CRITERIA", "plan has no success_criteria — how will you know it worked?")
+        issue("warning", "NO_SUCCESS_CRITERIA", "plan has no success_criteria - how will you know it worked?")
     if not plan.get("assumptions"):
-        issue("info", "NO_ASSUMPTIONS", "no assumptions listed — plans fail on hidden assumptions")
+        issue("info", "NO_ASSUMPTIONS", "no assumptions listed - plans fail on hidden assumptions")
     return _issues_to_dicts(issues)
 
 
@@ -136,18 +249,18 @@ def _verify_py(plan):
         sid = str(s.get("id")) if s.get("id") is not None else "?"
         if (s.get("risk") or "").lower() == "high":
             issue("warning", "HIGH_RISK_STEP",
-                  f"step {sid} is marked high risk — ensure it has a rollback/abort path", sid)
+                  f"step {sid} is marked high risk - ensure it has a rollback/abort path", sid)
         a = (s.get("action") or "").lower()
         if any(w in a for w in ("rollback", "revert", "backup", "restore", "snapshot")):
             has_rollback_like = True
     if len(steps) >= 4 and not has_rollback_like:
         issue("info", "NO_ROLLBACK_STEP",
-              "no backup/rollback/restore step detected — consider one for multi-step plans")
+              "no backup/rollback/restore step detected - consider one for multi-step plans")
 
     risks = plan.get("risks") or []
     if risks and not any((r.get("severity") or "med").lower() == "high" for r in risks):
         issue("info", "NO_HIGH_RISK_IDENTIFIED",
-              "risks listed but none marked high — either nothing is truly high risk, or risks were under-rated")
+              "risks listed but none marked high - either nothing is truly high risk, or risks were under-rated")
 
     dep_count = {}
     for s in steps:
@@ -168,7 +281,7 @@ def _render_table_py(plan):
     def cell(s, w):
         s = str(s or "").replace("\n", " ")
         if len(s) > w:
-            s = s[: w - 1] + "…"
+            s = s[: w - 1] + "..."
         return s + " " * (w - len(s))
 
     sep = "+" + "-" * (id_w + 2) + "+" + "-" * (act_w + 2) + "+" + "-" * (rat_w + 2) + "+" + "-" * (ver_w + 2) + "+"
@@ -190,7 +303,7 @@ def _render_mermaid_py(plan):
     for s in plan.get("steps") or []:
         label = str(s.get("action") or "").translate(str.maketrans("", "", '"[]|'))
         if len(label) > 48:
-            label = label[:47] + "…"
+            label = label[:47] + "..."
         lines.append(f'  {mid(s.get("id"))}["{label}"]')
     for s in plan.get("steps") or []:
         for dep in s.get("depends_on") or []:
@@ -202,12 +315,12 @@ def _explain_py(plan):
     L = ["GLASSBOX PLAIN-LANGUAGE EXPLANATION",
          "====================================", "",
          "WHAT THIS DOES (the 10-second version)",
-         f"  {plan.get('goal') or plan.get('title') or 'No goal recorded — that is itself a finding.'}"]
+         f"  {plan.get('goal') or plan.get('title') or 'No goal recorded - that is itself a finding.'}"]
     if plan.get("context"):
         L += ["", "THE SITUATION", f"  {plan['context']}"]
     L += ["", "HOW IT WILL GO, STEP BY STEP"]
     for i, s in enumerate(plan.get("steps") or [], 1):
-        L.append(f"  {i}. Step {s.get('id')} — {s.get('action')}")
+        L.append(f"  {i}. Step {s.get('id')} - {s.get('action')}")
         if s.get("rationale"):
             L.append(f"     Why: {s['rationale']}")
         if s.get("verify"):
@@ -222,7 +335,7 @@ def _explain_py(plan):
                 L.append(f"     Countermeasure: {r['mitigation']}")
     assumptions = plan.get("assumptions") or []
     if assumptions:
-        L += ["", "THE RECEIPTS (assumptions — if any of these is wrong, the plan changes)"]
+        L += ["", "THE RECEIPTS (assumptions - if any of these is wrong, the plan changes)"]
         for i, a in enumerate(assumptions, 1):
             L.append(f"  {i}. {a}")
     sc = plan.get("success_criteria") or []
@@ -242,13 +355,13 @@ def _trust_report_py(plan):
         score -= {"error": 25, "warning": 8}.get(i["severity"], 2)
     score = max(0, score)
     if score >= 85:
-        verdict = "SOLID — safe to execute with normal review"
+        verdict = "SOLID - safe to execute with normal review"
     elif score >= 60:
-        verdict = "WORKABLE — fix the warnings before executing"
+        verdict = "WORKABLE - fix the warnings before executing"
     elif score >= 30:
-        verdict = "FRAGILE — redesign before executing"
+        verdict = "FRAGILE - redesign before executing"
     else:
-        verdict = "DO NOT EXECUTE — plan has structural errors"
+        verdict = "DO NOT EXECUTE - plan has structural errors"
     return {"score": score, "verdict": verdict, "counts": counts, "issues": issues}
 
 
@@ -260,19 +373,24 @@ def _lua_call(command: str, plan_json: str | None = None, extra_args: list[str] 
     args = [LUA_BIN, str(LUA_CORE), command]
     if extra_args:
         args += extra_args
-    proc = subprocess.run(args, input=plan_json or "", capture_output=True, text=True)
+    try:
+        payload = plan_json or ""
+        if not isinstance(payload, str):
+            payload = json.dumps(payload)
+        proc = subprocess.run(args, input=payload, capture_output=True, text=True, timeout=60)
+    except subprocess.TimeoutExpired:
+        return json.dumps({"error": "lua core timed out after 60s", "command": command})
     if proc.returncode != 0:
-        raise RuntimeError(f"Lua core failed ({command}): {proc.stderr.strip()}")
+        return json.dumps({"error": f"lua core failed ({command}): {(proc.stderr or '').strip()}",
+                           "command": command,
+                           "hint": "plan JSON parsed but the Lua core rejected it; check glassbox_validate_plan output"})
     return proc.stdout
 
 
 def _parse_plan(plan_json: str) -> dict:
-    try:
-        plan = json.loads(plan_json)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"plan_json is not valid JSON: {e}") from e
-    if not isinstance(plan, dict):
-        raise ValueError("plan_json must be a JSON object")
+    plan, err = _lenient_json_object(plan_json)
+    if plan is None:
+        raise ValueError(err or "invalid plan_json")
     return plan
 
 
@@ -281,6 +399,7 @@ def _parse_plan(plan_json: str) -> dict:
 # --------------------------------------------------------------------------
 
 @mcp.tool()
+@_guard
 def glassbox_status() -> str:
     """Report which Glassbox backend is active (Lua core vs Python fallback)."""
     backend = f"lua ({LUA_BIN})" if USE_LUA else "python-fallback"
@@ -288,6 +407,7 @@ def glassbox_status() -> str:
 
 
 @mcp.tool()
+@_guard
 def glassbox_plan_skeleton(goal: str, context: str = "", constraints: str = "") -> str:
     """Return a fully-structured, empty Glassbox plan for a goal.
 
@@ -312,41 +432,45 @@ def glassbox_plan_skeleton(goal: str, context: str = "", constraints: str = "") 
 
 
 @mcp.tool()
+@_guard
 def glassbox_validate_plan(plan_json: str) -> str:
     """Structural validation of a plan: required fields, dangling deps, duplicate ids."""
     plan = _parse_plan(plan_json)
     if USE_LUA:
-        return _lua_call("validate", plan_json)
+        return _lua_call("validate", json.dumps(plan))
     return json.dumps({"issues": _validate_py(plan)}, indent=2)
 
 
 @mcp.tool()
+@_guard
 def glassbox_verify_plan(plan_json: str) -> str:
     """Deep verification: dependency cycles, high-risk steps, SPOFs, rollback coverage, risk grading."""
     plan = _parse_plan(plan_json)
     if USE_LUA:
-        return _lua_call("verify", plan_json)
+        return _lua_call("verify", json.dumps(plan))
     return json.dumps({"issues": _verify_py(plan)}, indent=2)
 
 
 @mcp.tool()
+@_guard
 def glassbox_trust_report(plan_json: str) -> str:
     """Scored trust report (0-100) with a plain-English verdict and every issue found."""
     plan = _parse_plan(plan_json)
     if USE_LUA:
-        return _lua_call("trust", plan_json)
+        return _lua_call("trust", json.dumps(plan))
     return json.dumps(_trust_report_py(plan), indent=2)
 
 
 @mcp.tool()
+@_guard
 def glassbox_render(plan_json: str, diagram: str = "table") -> str:
     """Render a plan. diagram: 'table' (ASCII), 'mermaid' (flowchart TD), or 'explain' (plain language)."""
     plan = _parse_plan(plan_json)
     diagram = diagram.lower().strip()
     if diagram == "explain":
-        return _lua_call("explain", plan_json) if USE_LUA else _explain_py(plan)
+        return _lua_call("explain", json.dumps(plan)) if USE_LUA else _explain_py(plan)
     if USE_LUA and diagram in ("table", "mermaid"):
-        return _lua_call(diagram, plan_json)
+        return _lua_call(diagram, json.dumps(plan))
     if diagram == "table":
         return _render_table_py(plan)
     if diagram == "mermaid":
@@ -355,13 +479,15 @@ def glassbox_render(plan_json: str, diagram: str = "table") -> str:
 
 
 @mcp.tool()
+@_guard
 def glassbox_explain(plan_json: str) -> str:
     """Plain-language explanation of a plan: what, why, step rationale, risks, receipts (assumptions), definition of done."""
     plan = _parse_plan(plan_json)
-    return _lua_call("explain", plan_json) if USE_LUA else _explain_py(plan)
+    return _lua_call("explain", json.dumps(plan)) if USE_LUA else _explain_py(plan)
 
 
 @mcp.tool()
+@_guard
 def glassbox_swarm(task: str, context: str = "", max_passes: int = 3, use_thinker: bool = False) -> str:
     """Run the Glassbox Iron Swarm v2: recursive 10-agent pipeline in pure Lua (core/iron_swarm.lua).
 
@@ -372,13 +498,14 @@ def glassbox_swarm(task: str, context: str = "", max_passes: int = 3, use_thinke
     Backend: any OpenAI-compatible endpoint via GLASSBOX_LLM_BASE/GLASSBOX_LLM_MODEL/GLASSBOX_LLM_KEY. No backend -> inspectable scaffold mode.
     use_thinker=True enables the Tiny Thinker gate (int8 BERT-Tiny, ~4.2 MB, in-process): noise GB1 lines from scouts are dropped before analysts spend tokens on them. Fail-open.
 
-    Returns final GB1 design + synthesized plan + trust report + per-pass receipts. Tell the user this was produced by a parallel, recursive agent swarm — do not claim a single model produced it.
+    Returns final GB1 design + synthesized plan + trust report + per-pass receipts. Tell the user this was produced by a parallel, recursive agent swarm - do not claim a single model produced it.
     """
     result = swarm_module.swarm(task, context, max_passes, use_thinker)
     return json.dumps(result, indent=2)
 
 
 @mcp.tool()
+@_guard
 def glassbox_think(task: str, findings: str) -> str:
     """Tiny Thinker (int8 BERT-Tiny, ~4.2 MB, in-process): relevance-rank `findings` against `task`, drop noise, flag duplicates and contradiction candidates.
 
@@ -404,13 +531,14 @@ def glassbox_think(task: str, findings: str) -> str:
 
 
 @mcp.tool()
+@_guard
 def glassbox_forge(task: str, seed: int = 0, per_family: int = 3, top: int = 8) -> str:
-    """The Forge — combinatorial creativity engine (Lua) ranked by the Tiny Thinker.
+    """The Forge - combinatorial creativity engine (Lua) ranked by the Tiny Thinker.
 
     Deterministically generates 14+ idea scaffolds via real creativity algorithms:
     Koestler bisociation/conceptual blending (BLEND), SCAMPER mutations, assumption negation,
     abstraction-ladder zoom in/out, and constraint subtraction. Every idea records its operator,
-    parents and a seed rationale — fully traceable.
+    parents and a seed rationale - fully traceable.
 
     Returns the Thinker-ranked top-N with coherence + fertility scores and a development protocol.
     The LLM must instantiate the ideas (mechanism, not metaphor), pre-mortem them and cross-pollinate survivors.
@@ -442,15 +570,16 @@ def glassbox_forge(task: str, seed: int = 0, per_family: int = 3, top: int = 8) 
 
 
 @mcp.tool()
+@_guard
 def glassbox_deepthink(task: str, mode: str = "think_hard", context: str = "") -> str:
-    """On-demand deep thinking — only fires when the user or AI explicitly asks to think hard.
+    """On-demand deep thinking - only fires when the user or AI explicitly asks to think hard.
 
     mode:
       think_hard  = full Iron Swarm v2 with the Tiny Thinker hand-in-hand at every pass (3 scouts -> gate -> 5 analysts -> architect -> verifier, recursive until PASS)
       brainstorm  = The Forge: 14 traced creativity scaffolds, Thinker-ranked, ready for instantiation and cross-pollination
       todo        = structured to-do: returns the Glassbox plan skeleton your AI fills in, then glassbox_verify_plan scores it
 
-    Not for quick questions — this burns tokens by design. Returns the mode that ran, never a silent downgrade.
+    Not for quick questions - this burns tokens by design. Returns the mode that ran, never a silent downgrade.
     """
     mode = (mode or "think_hard").lower().strip()
     if mode == "think_hard":
@@ -460,6 +589,30 @@ def glassbox_deepthink(task: str, mode: str = "think_hard", context: str = "") -
     if mode == "todo":
         return glassbox_plan_skeleton(task, context, "")
     return json.dumps({"error": f"unknown mode {mode!r}; use think_hard | brainstorm | todo"})
+
+
+@mcp.tool()
+@_guard
+def glassbox_report(plan_json: str, open_browser: bool = True) -> str:
+    """Open/generate the GLASSBOX COCKPIT - a neon HTML dashboard of the plan: trust ring, timeline, risk board, audit findings, assumption receipts.
+
+    Writes examples/glassbox-report.html (self-contained, offline) and opens it in the default browser.
+    """
+    import webbrowser
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import glassbox_report as _report
+
+    plan = _parse_plan(plan_json)
+    out = ROOT / "examples" / "glassbox-report.html"
+    _report.build(plan, out, open_browser=False)
+    if open_browser:
+        try:
+            webbrowser.open(out.resolve().as_uri())
+        except Exception:
+            pass
+    return json.dumps({"cockpit": str(out), "opened": bool(open_browser),
+                       "hint": "Self-contained HTML - works offline, safe to share."})
 
 
 def main() -> None:

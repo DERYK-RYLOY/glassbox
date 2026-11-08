@@ -1,0 +1,150 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'>
+<title>GLASSBOX COCKPIT - Publish Glassbox as a public GitHub repo with README, demo, </title>
+<meta name='viewport' content='width=device-width,initial-scale=1'>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#05070f;--panel:rgba(18,24,44,.55);--line:rgba(120,220,255,.16);
+      --neon:#00e5ff;--violet:#8b5cf6;--ink:#e6f1ff;--dim:#8a97b8;--ok:#34d399;--warn:#fbbf24;--bad:#fb7185}
+body{background:radial-gradient(1200px 800px at 15% -10%,#141b3a 0%,transparent 60%),
+               radial-gradient(1000px 700px at 110% 10%,#1b0f3a 0%,transparent 55%),var(--bg);
+      color:var(--ink);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+      background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.015) 3px 4px)}
+main{max-width:1180px;margin:auto;padding:34px 26px 80px;position:relative;z-index:1}
+.top{display:flex;align-items:center;gap:18px;padding:16px 22px;border:1px solid var(--line);
+     border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent);backdrop-filter:blur(14px);
+     box-shadow:0 0 60px rgba(0,229,255,.07),inset 0 1px 0 rgba(255,255,255,.06)}
+.logo{width:46px;height:46px;border-radius:14px;background:conic-gradient(from 210deg,#00e5ff,#8b5cf6,#00e5ff);
+      display:grid;place-items:center;font-weight:900;font-size:22px;color:#05070f;
+      box-shadow:0 0 26px rgba(0,229,255,.45);animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 18px rgba(0,229,255,.4)}50%{box-shadow:0 0 34px rgba(139,92,246,.65)}}
+h1{font-size:21px;letter-spacing:.22em;font-weight:800}
+.tag{color:var(--neon);font-size:11px;letter-spacing:.35em;text-transform:uppercase}
+.goal{margin:22px 0 6px;color:var(--dim);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.goaltext{font-size:26px;font-weight:700;line-height:1.3;max-width:880px}
+.grid{display:grid;grid-template-columns:380px 1fr;gap:22px;margin-top:28px}
+.card{border:1px solid var(--line);border-radius:20px;background:var(--panel);
+      backdrop-filter:blur(12px);padding:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.ringwrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.ring{filter:drop-shadow(0 0 18px rgba(0,229,255,.35))}
+.ringbg{stroke:rgba(255,255,255,.07)}
+.ringval{stroke:url(#grad);stroke-linecap:round;stroke-dasharray:565;stroke-dashoffset:565;
+         transition:stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1)}
+.scorenum{font-size:56px;font-weight:800;fill:var(--ink)}
+.scorelbl{fill:var(--dim);font-size:10px;letter-spacing:.3em;text-transform:uppercase}
+.verdict{font-size:15px;font-weight:700;color:var(--ok);text-align:center;line-height:1.5}
+.meta{width:100%;margin-top:8px;border-collapse:collapse;font-size:12px}
+.meta td{padding:6px 4px;border-top:1px solid rgba(255,255,255,.06);color:var(--dim)}
+.meta b{color:var(--ink);font-weight:600}
+.timeline{display:flex;flex-direction:column;gap:14px}
+.step{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;background:rgba(255,255,255,.03);transition:transform .2s,border-color .2s}
+.step:hover{transform:translateX(6px);border-color:rgba(0,229,255,.4)}
+.sid{min-width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;
+     background:linear-gradient(160deg,#0ea5e9,#8b5cf6);color:#05070f;font-size:14px}
+.sbody{flex:1}
+.saction{font-weight:600;font-size:14.5px}
+.swhy{color:var(--dim);font-size:12px;margin-top:4px}
+.sver{color:var(--neon);font-size:11.5px;margin-top:6px;font-family:Consolas,monospace}
+.risk{font-size:10px;font-weight:800;letter-spacing:.08em;padding:3px 9px;border-radius:99px;margin-top:8px;display:inline-block}
+.risk.low{background:rgba(52,211,153,.15);color:var(--ok)}
+.risk.medium{background:rgba(251,191,36,.15);color:var(--warn)}
+.risk.high{background:rgba(251,113,133,.18);color:var(--bad)}
+h2{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin:26px 0 12px}
+.riskrow{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-left:3px solid var(--bad);
+         background:rgba(251,113,133,.06);border-radius:8px;margin-bottom:8px;font-size:13px}
+.riskrow.medium{border-color:var(--warn);background:rgba(251,191,36,.05)}
+.riskrow .sev{font-weight:800;font-size:10px;letter-spacing:.1em;margin-right:6px}
+pre.receipt{background:#070b18;border:1px solid var(--line);border-radius:12px;padding:14px;overflow:auto;
+             font-size:11px;color:#9fd3ff;font-family:Consolas,monospace;max-height:280px}
+.foot{margin-top:34px;text-align:center;color:var(--dim);font-size:11px;letter-spacing:.15em}
+.foot b{color:var(--neon)}
+@media(max-width:920px){.grid{grid-template-columns:1fr}}
+</style></head><body><main>
+<div class='top'><div class='logo'>G</div>
+  <div><h1>GLASSBOX</h1><div class='tag'>cockpit // audited by code, not vibes</div></div>
+  <div style='margin-left:auto;text-align:right'><div class='tag' style='color:var(--dim)'>scan</div><div style='font-family:Consolas;font-size:13px'>2026-11-08 09:32</div></div>
+</div>
+<div class='goal'>mission goal</div>
+<div class='goaltext'>Publish Glassbox as a public GitHub repo with README, demo, and install docs so any AI CLI user can try it</div>
+<div class='grid'>
+  <div class='card ringwrap'>
+    <svg class='ring' width='230' height='230' viewBox='0 0 200 200'>
+      <defs><linearGradient id='grad' x1='0' y1='0' x2='1' y2='1'>
+        <stop offset='0%' stop-color='#00e5ff'/><stop offset='100%' stop-color='#8b5cf6'/>
+      </linearGradient></defs>
+      <circle class='ringbg' cx='100' cy='100' r='90' stroke-width='14' fill='none'/>
+      <circle class='ringval' cx='100' cy='100' r='90' stroke-width='14' fill='none'
+              transform='rotate(-90 100 100)' stroke-dashoffset='11.3' id='ringval'/>
+      <text x='100' y='96' text-anchor='middle' class='scorenum'>98</text>
+      <text x='100' y='122' text-anchor='middle' class='scorelbl'>trust / 100</text>
+    </svg>
+    <div class='verdict' style='color:#34d399'>SOLID - safe to execute with normal review</div>
+    <table class='meta'>
+      <tr><td>errors</td><td><b>0</b></td></tr>
+      <tr><td>warnings</td><td><b>0</b></td></tr>
+      <tr><td>info</td><td><b>1</b></td></tr>
+      <tr><td>source</td><td><b>GLASSBOX AUDIT</b></td></tr>
+    </table>
+  </div>
+  <div class='card'>
+    <h2>execution timeline</h2>
+    <div class='timeline'><div class='step'><div class='sid'>1</div>
+      <div class='sbody'><div class='saction'>Repo hygiene pass: remove __pycache__, add .gitignore, LICENSE (MIT), CONTRIBUTING.md</div>
+      <div class='swhy'>why: Public repos without these look abandoned; MIT maximizes adoption</div>
+      
+      <div class='sver'>verify: git ls-files shows no junk; LICENSE present</div>
+      <span class='risk low'>LOW RISK</span></div></div><div class='step'><div class='sid'>2</div>
+      <div class='sbody'><div class='saction'>Rewrite README top: 10-second pitch + ascii architecture + install + tools table + honest limits</div>
+      <div class='swhy'>why: Visitors decide in 30s; honesty compounds trust</div>
+      <span class='sver'>after: 1</span>
+      <div class='sver'>verify: README renders; clean-machine install instructions work on Windows</div>
+      <span class='risk low'>LOW RISK</span></div></div><div class='step'><div class='sid'>3</div>
+      <div class='sbody'><div class='saction'>Add one-command Windows setup script (install Lua + python deps + winget/pacman notes)</div>
+      <div class='swhy'>why: Install friction is the #1 adoption killer</div>
+      <span class='sver'>after: 2</span>
+      <div class='sver'>verify: Run installer in fresh VM or Sandbox; glassbox_status returns lua ok</div>
+      <span class='risk medium'>MEDIUM RISK</span></div></div><div class='step'><div class='sid'>4</div>
+      <div class='sbody'><div class='saction'>Record 60s demo: glassbox_deepthink think_hard on a real task, show receipts + trust score</div>
+      <div class='swhy'>why: Shows the recursion and auditable receipts, not claims</div>
+      <span class='sver'>after: 2</span>
+      <div class='sver'>verify: Video shows verifier REVISE-&gt;PASS and final trust score</div>
+      <span class='risk medium'>MEDIUM RISK</span></div></div><div class='step'><div class='sid'>5</div>
+      <div class='sbody'><div class='saction'>Tag v0.1.0 release with notes + checksums for the int8 model file</div>
+      <div class='swhy'>why: Releases are the trust anchor for tools people run locally</div>
+      <span class='sver'>after: 3, 4</span>
+      <div class='sver'>verify: GitHub release page lists assets; checksums match</div>
+      <span class='risk low'>LOW RISK</span></div></div><div class='step'><div class='sid'>6</div>
+      <div class='sbody'><div class='saction'>Post to relevant communities with explicit honest-vs-hype framing</div>
+      <div class='swhy'>why: The audience that values auditability is small but loyal</div>
+      <span class='sver'>after: 5</span>
+      <div class='sver'>verify: at least 1 thread with substantive replies; no misleading claims</div>
+      <span class='risk medium'>MEDIUM RISK</span></div></div></div>
+  </div>
+</div>
+<h2>risk board</h2><div class='riskrow high'><div><span class='sev'>HIGH</span>Model file (4.2 MB) bloats or licenses question from bert-tiny upstream<br><span style='color:var(--dim);font-size:12px'>countermeasure: Verify bert-tiny license (Apache-2.0); ship via release checksum, document provenance</span></div></div><div class='riskrow medium'><div><span class='sev'>MEDIUM</span>Overclaiming receipts as &#x27;reasoning&#x27; attracts well-deserved skepticism<br><span style='color:var(--dim);font-size:12px'>countermeasure: README honesty section leads with limits before features</span></div></div>
+<h2>audit findings</h2><div class='riskrow medium'><div><span class='sev'>INFO</span>no backup/rollback/restore step detected - consider one for multi-step plans</div></div>
+<div style='display:grid;grid-template-columns:1fr 1fr;gap:18px'>
+  <div class='card'><h2 style='margin-top:0'>assumption receipts</h2><ul style='padding-left:18px'><li style='margin:6px 0;color:var(--dim)'>OpenCode grammar for MCP docs is stable enough to link</li><li style='margin:6px 0;color:var(--dim)'>user has GitHub account</li><li style='margin:6px 0;color:var(--dim)'>winget install path stays stable</li></ul></div>
+  <div class='card'><h2 style='margin-top:0'>definition of done</h2><ul style='padding-left:18px'><li style='margin:6px 0;color:var(--dim)'>public repo reachable</li><li style='margin:6px 0;color:var(--dim)'>fresh-machine install works</li><li style='margin:6px 0;color:var(--dim)'>demo video shows REVISE-&gt;PASS recursion</li><li style='margin:6px 0;color:var(--dim)'>release has checksummed model asset</li></ul></div>
+</div>
+<h2>receipts (raw)</h2><pre class='receipt'>{
+  &quot;score&quot;: 98,
+  &quot;issues&quot;: [
+    {
+      &quot;code&quot;: &quot;NO_ROLLBACK_STEP&quot;,
+      &quot;message&quot;: &quot;no backup/rollback/restore step detected - consider one for multi-step plans&quot;,
+      &quot;severity&quot;: &quot;info&quot;
+    }
+  ],
+  &quot;verdict&quot;: &quot;SOLID - safe to execute with normal review&quot;,
+  &quot;counts&quot;: {
+    &quot;info&quot;: 1,
+    &quot;error&quot;: 0,
+    &quot;warning&quot;: 0
+  }
+}</pre>
+<div class='foot'>GLASSBOX COCKPIT - <b>every claim auditable, every assumption receipted</b></div>
+</main>
+<script>requestAnimationFrame(()=>{document.getElementById('ringval').style.strokeDashoffset='11.3';});</script>
+</body></html>

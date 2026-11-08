@@ -1,4 +1,4 @@
-"""Iron Swarm v2 bridge — drives core/iron_swarm.lua (the recursive Lua engine).
+"""Iron Swarm v2 bridge - drives core/iron_swarm.lua (the recursive Lua engine).
 
 python is the transport (HTTP + concurrency, see llm_bridge.py); Lua is the
 brain (agent orchestration, GB1 codec, the verify -> revise recursion,

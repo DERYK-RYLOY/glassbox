@@ -1,9 +1,9 @@
 -- ============================================================================
--- Iron Swarm v2 — recursive 10-agent reasoning engine (pure Lua + Python transport)
+-- Iron Swarm v2 - recursive 10-agent reasoning engine (pure Lua + Python transport)
 --
 -- Architecture (per pass):
---   3 SCOUTS   ∥ gather: facts / prior-art / failure-modes
---   5 ANALYSTS ∥ dissect: correctness / security / performance / maintainability / risk-cost
+--   3 SCOUTS   | gather: facts / prior-art / failure-modes
+--   5 ANALYSTS | dissect: correctness / security / performance / maintainability / risk-cost
 --   1 ARCHITECT   design: one unified GB1 STEP plan
 --   1 VERIFIER    audit: GB-flavored verdict -- GV|PASS|... or GV|REVISE|...
 --
@@ -174,7 +174,7 @@ local function gb1_content_lines(outputs)
 end
 
 local function call_agents(requests)
-  -- requests: { {role, system, user, max_tokens?}, ... } — sent concurrently
+  -- requests: { {role, system, user, max_tokens?}, ... } - sent concurrently
   math.randomseed(os.time() + os.clock() * 1000)
   local req_file, res_file = _temp_file("req"), _temp_file("res")
 
@@ -259,7 +259,7 @@ local function run_pass(state, pass_no)
           thinker_stats = gate.stats
         end
       else
-        thinker_stats = { note = "thinker gate unavailable — findings unfiltered (fail-open)" }
+        thinker_stats = { note = "thinker gate unavailable - findings unfiltered (fail-open)" }
       end
     end
   end
@@ -276,7 +276,7 @@ local function run_pass(state, pass_no)
   local analyst_out = call_agents(requests)
   local merged_analysis = merge_findings(analyst_out)
 
-  -- Phase 3: architect — with verifier feedback from previous passes
+  -- Phase 3: architect - with verifier feedback from previous passes
   local architect_user = brief .. "\nANALYSIS:\n" .. merged_analysis
   if state.feedback and state.feedback ~= "" then
     architect_user = architect_user .. "\nREVISION FEEDBACK (you MUST address every item):\n" .. state.feedback
@@ -287,7 +287,7 @@ local function run_pass(state, pass_no)
                                       max_tokens = 1500 } })
   local artifact = arch_out.architect or "GB1/1\nEND"
 
-  -- Phase 4: verifier — the convergence gate
+  -- Phase 4: verifier - the convergence gate
   local verifier_role = role_index()["verifier"]
   local ver_out = call_agents({ { role = "verifier", system = verifier_role.system,
                                   user = gb1_frame(state.task_id, "VERIFY",
@@ -297,7 +297,7 @@ local function run_pass(state, pass_no)
   local verdict_raw = ver_out.verifier or ""
   local records = IS.parse_gb1(verdict_raw)
 
-  local verdict, reason, feedback_lines = "REVISE", "verifier unparseable — treating as REVISE", {}
+  local verdict, reason, feedback_lines = "REVISE", "verifier unparseable - treating as REVISE", {}
   for _, rec in ipairs(records) do
     if rec.kind == "GV" then verdict, reason = rec.verdict or "REVISE", rec.reason or "" end
     if rec.kind == "RISK" then

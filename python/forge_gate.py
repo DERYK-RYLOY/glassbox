@@ -5,8 +5,8 @@ Output (stdout JSON): same ideas + "coherence" per idea, sorted, tagged with
                       novelty hints for BLEND pairs (parent distance).
 
 Scoring contract:
-  coherence = cos(task, spark)          — is the idea pointed at the problem?
-  fertility = cos(parentA, parentB)     — distance between parents; LOWEST distance
+  coherence = cos(task, spark)          - is the idea pointed at the problem?
+  fertility = cos(parentA, parentB)     - distance between parents; LOWEST distance
               is common knowledge; mid-range pairs produce the fertile collisions.
 These are priors for the LLM, not verdicts.
 """

@@ -1,4 +1,4 @@
-"""Glassbox Tiny Thinker — a ~4.2 MB in-process cognitive triage layer.
+"""Glassbox Tiny Thinker - a ~4.2 MB in-process cognitive triage layer.
 
 What it IS:  int8 BERT-Tiny (prajjwal1/bert-tiny, 2 layers, 128 hidden) run via
              ONNX Runtime in-process. Semantic embeddings + cosine gates for:
@@ -90,7 +90,7 @@ class TinyThinker:
 
     def contradiction_candidates(self, items: list[str], sim_floor: float = 0.55) -> list[dict]:
         """Semantically-related item pairs where one side negates. A HINT for the big model,
-        not a verdict — the LLM decides what's actually contradictory."""
+        not a verdict - the LLM decides what's actually contradictory."""
         if len(items) < 2:
             return []
         lowered = [t.lower() for t in items]
@@ -107,7 +107,7 @@ class TinyThinker:
                 neg_j = bool(toks_j & _NEGATION)
                 if neg_i != neg_j:
                     out.append({"pair": [i, j], "similarity": round(float(sim[i, j]), 4),
-                                "hint": f"one of these negates the other (sim {sim[i, j]:.2f}) — check with the LLM"})
+                                "hint": f"one of these negates the other (sim {sim[i, j]:.2f}) - check with the LLM"})
         return out
 
     def think(self, task: str, findings: list[str], keep_threshold: float = 0.60) -> dict:
@@ -131,7 +131,7 @@ class TinyThinker:
             "contradiction_candidates": contra,
             "verdict": f"kept {len(ranked)}/{len(findings)} findings as relevant; "
                        f"{len(dups)} duplicate cluster(s); {len(contra)} contradiction candidate(s) "
-                       "— all hints for the real model, none are conclusions.",
+                       "- all hints for the real model, none are conclusions.",
         }
 
 
@@ -152,7 +152,7 @@ if __name__ == "__main__":
         "Token bucket is correct for burst control",
         "Use express-rate-limit middleware",
         "Bananas grow on banana trees",
-        "Counters reset on process restart — accept this risk",
+        "Counters reset on process restart - accept this risk",
         "Restart does not reset counters in memory",
         "Add 429 alerting and saturation metrics",
     ]

@@ -1,4 +1,4 @@
-"""Glassbox LLM bridge — the Iron Swarm's transport layer.
+"""Glassbox LLM bridge - the Iron Swarm's transport layer.
 
 Reads {"agents": [{"role", "system", "user"}, ...]} on stdin, calls the
 configured OpenAI-compatible chat endpoint for all agents CONCURRENTLY,

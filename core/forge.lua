@@ -1,5 +1,5 @@
 -- ============================================================================
--- The Forge — combinatorial creativity engine (pure Lua)
+-- The Forge - combinatorial creativity engine (pure Lua)
 --
 -- Generates NOVEL idea scaffolds by forcing collisions the LLM's next-token
 -- distribution would never propose on its own. The LLM instantiates the ideas;
@@ -23,7 +23,7 @@ local Glassbox = dofile(core_dir .. "/glassbox.lua")
 local JSON = Glassbox.JSON
 
 ----------------------------------------------------------------------------
--- Concept domains (broad, divergent, embedded) — the blend parents
+-- Concept domains (broad, divergent, embedded) - the blend parents
 ----------------------------------------------------------------------------
 local DOMAINS = {
   "evolutionary biology", "jazz improvisation", "mycology", "ant colony foraging",
@@ -91,7 +91,7 @@ function Forge.generate(task, opts)
       used[key] = true
       id = id + 1
       ideas[#ideas + 1] = idea(id, "BLEND", { a, b },
-        string.format("Apply %s × %s to: %s", a, b, task_l),
+        string.format("Apply %s x %s to: %s", a, b, task_l),
         "Koestler bisociation: force-fit two matrices that share no shelf")
     end
   end
@@ -100,13 +100,13 @@ function Forge.generate(task, opts)
   for _, s in ipairs(SCAMPER) do
     id = id + 1
     ideas[#ideas + 1] = idea(id, "SCAMPER/" .. s.op, { task_l },
-      string.format("%s — for: %s", s.q, task_l), "SCAMPER: systematic mutation, not vibes")
+      string.format("%s - for: %s", s.q, task_l), "SCAMPER: systematic mutation, not vibes")
   end
 
   -- NEGATE: invert the load-bearing assumption
   id = id + 1
   ideas[#ideas + 1] = idea(id, "NEGATE", { task_l },
-    string.format("Assume the OPPOSITE of the most obvious constraint inside: %s — then design as if it were law", task_l),
+    string.format("Assume the OPPOSITE of the most obvious constraint inside: %s - then design as if it were law", task_l),
     "Negation: the trap-door under the safest assumption")
 
   -- ALT: abstraction ladder up 3, down 1
@@ -144,7 +144,7 @@ function Forge.dossier(task, opts)
       "For each idea: instantiate it in 2-4 sentences (mechanism, not metaphor).",
       "Pre-mortem each: what does it break FIRST?",
       "Cross-pollinate the top 2 by the Thinker's coherence ranking; hybridize survivors.",
-      "Discard nothing without a written reason — killed ideas are data.",
+      "Discard nothing without a written reason - killed ideas are data.",
     },
     honesty = "These are operator-generated scaffolds (bisociation/SCAMPER/negation/altitude), " ..
               "not finished ideas. The LLM must instantiate each. The Thinker gate ranks coherence; " ..

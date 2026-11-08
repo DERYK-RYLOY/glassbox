@@ -209,10 +209,10 @@ function Glassbox.validate_plan(plan)
     end
   end
   if type(plan.success_criteria) ~= 'table' or #plan.success_criteria == 0 then
-    issues[#issues+1] = new_issue('warning', 'NO_SUCCESS_CRITERIA', 'plan has no success_criteria — how will you know it worked?')
+    issues[#issues+1] = new_issue('warning', 'NO_SUCCESS_CRITERIA', 'plan has no success_criteria - how will you know it worked?')
   end
   if type(plan.assumptions) ~= 'table' or #plan.assumptions == 0 then
-    issues[#issues+1] = new_issue('info', 'NO_ASSUMPTIONS', 'no assumptions listed — plans fail on hidden assumptions')
+    issues[#issues+1] = new_issue('info', 'NO_ASSUMPTIONS', 'no assumptions listed - plans fail on hidden assumptions')
   end
   return issues
 end
@@ -249,7 +249,7 @@ function Glassbox.verify_plan(plan)
   local has_rollback_like = false
   for _, s in ipairs(steps) do
     if (s.risk or ''):lower() == 'high' then
-      issues[#issues+1] = new_issue('warning', 'HIGH_RISK_STEP', 'step ' .. tostring(s.id) .. ' is marked high risk — ensure it has a rollback/abort path', tostring(s.id))
+      issues[#issues+1] = new_issue('warning', 'HIGH_RISK_STEP', 'step ' .. tostring(s.id) .. ' is marked high risk - ensure it has a rollback/abort path', tostring(s.id))
     end
     local a = (s.action or ''):lower()
     if a:find('rollback') or a:find('revert') or a:find('backup') or a:find('restore') or a:find('snapshot') then
@@ -257,14 +257,14 @@ function Glassbox.verify_plan(plan)
     end
   end
   if #steps >= 4 and not has_rollback_like then
-    issues[#issues+1] = new_issue('info', 'NO_ROLLBACK_STEP', 'no backup/rollback/restore step detected — consider one for multi-step plans')
+    issues[#issues+1] = new_issue('info', 'NO_ROLLBACK_STEP', 'no backup/rollback/restore step detected - consider one for multi-step plans')
   end
 
   -- Risk severity coverage
   local risk_sev = {}
   for _, r in ipairs(plan.risks or {}) do risk_sev[(r.severity or 'med'):lower()] = true end
   if #(plan.risks or {}) > 0 and not risk_sev['high'] then
-    issues[#issues+1] = new_issue('info', 'NO_HIGH_RISK_IDENTIFIED', 'risks listed but none marked high — either nothing is truly high risk, or risks were under-rated')
+    issues[#issues+1] = new_issue('info', 'NO_HIGH_RISK_IDENTIFIED', 'risks listed but none marked high - either nothing is truly high risk, or risks were under-rated')
   end
 
   -- Single point of failure: one step everything hangs off, no verify
@@ -291,7 +291,7 @@ end
 
 local function cell(s, width)
   s = tostring(s or ''):gsub('\n', ' ')
-  if #s > width then s = s:sub(1, width - 1) .. '…' end
+  if #s > width then s = s:sub(1, width - 1) .. '...' end
   return s .. string.rep(' ', width - #s)
 end
 
@@ -319,7 +319,7 @@ function Glassbox.render_mermaid(plan)
   local lines = { 'flowchart TD' }
   for _, s in ipairs(plan.steps or {}) do
     local label = tostring(s.action or ''):gsub('["%[%]|]', ' ')
-    if #label > 48 then label = label:sub(1, 47) .. '…' end
+    if #label > 48 then label = label:sub(1, 47) .. '...' end
     lines[#lines+1] = string.format('  %s["%s"]', mermaid_id(s.id), label)
   end
   for _, s in ipairs(plan.steps or {}) do
@@ -339,7 +339,7 @@ function Glassbox.explain_plan(plan)
   L[#L+1] = '===================================='
   L[#L+1] = ''
   L[#L+1] = 'WHAT THIS DOES (the 10-second version)'
-  L[#L+1] = '  ' .. tostring(plan.goal or plan.title or 'No goal recorded — that is itself a finding.')
+  L[#L+1] = '  ' .. tostring(plan.goal or plan.title or 'No goal recorded - that is itself a finding.')
   if plan.context and plan.context ~= '' then
     L[#L+1] = ''
     L[#L+1] = 'THE SITUATION'
@@ -348,7 +348,7 @@ function Glassbox.explain_plan(plan)
   L[#L+1] = ''
   L[#L+1] = 'HOW IT WILL GO, STEP BY STEP'
   for i, s in ipairs(plan.steps or {}) do
-    L[#L+1] = string.format('  %d. Step %s — %s', i, tostring(s.id), tostring(s.action))
+    L[#L+1] = string.format('  %d. Step %s - %s', i, tostring(s.id), tostring(s.action))
     if s.rationale and s.rationale ~= '' then
       L[#L+1] = '     Why: ' .. tostring(s.rationale)
     end
@@ -366,7 +366,7 @@ function Glassbox.explain_plan(plan)
   end
   if plan.assumptions and #plan.assumptions > 0 then
     L[#L+1] = ''
-    L[#L+1] = 'THE RECEIPTS (assumptions — if any of these is wrong, the plan changes)'
+    L[#L+1] = 'THE RECEIPTS (assumptions - if any of these is wrong, the plan changes)'
     for i, a in ipairs(plan.assumptions) do
       L[#L+1] = string.format('  %d. %s', i, tostring(a))
     end
@@ -394,10 +394,10 @@ function Glassbox.trust_report(plan)
   end
   if score < 0 then score = 0 end
   local verdict
-  if score >= 85 then verdict = 'SOLID — safe to execute with normal review'
-  elseif score >= 60 then verdict = 'WORKABLE — fix the warnings before executing'
-  elseif score >= 30 then verdict = 'FRAGILE — redesign before executing'
-  else verdict = 'DO NOT EXECUTE — plan has structural errors' end
+  if score >= 85 then verdict = 'SOLID - safe to execute with normal review'
+  elseif score >= 60 then verdict = 'WORKABLE - fix the warnings before executing'
+  elseif score >= 30 then verdict = 'FRAGILE - redesign before executing'
+  else verdict = 'DO NOT EXECUTE - plan has structural errors' end
   return {
     score = score,
     verdict = verdict,
@@ -422,7 +422,7 @@ function Glassbox.plan_skeleton(goal, context, constraints)
     _glassbox_instructions = {
       'Fill this plan completely and honestly.',
       'Every step MUST have: id, action, rationale (why this step), verify (how we know it worked), risk (low|med|high).',
-      'List depends_on ids for ordering. List assumptions explicitly — plans die from hidden assumptions.',
+      'List depends_on ids for ordering. List assumptions explicitly - plans die from hidden assumptions.',
       'Add risks with severity and mitigation. Add success_criteria.',
       'Then call glassbox_verify_plan on the result before showing it to the user.',
     }
