@@ -119,11 +119,7 @@ your AI CLI ──MCP──► glassbox_server ──► Iron Swarm v2 (pure Lua
 
 <div align="center">
 
-<img src="assets/poster.jpg" alt="GLASSBOX — Attempts 001 — audited by code not vibes. Trust 98/100, REVISE to PASS. How Glassbox shows what is inside." width="340">
-
 **Every claim auditable · every assumption receipted · trust 98/100.**
-
-*Attempts 001 — GLASSBOX*
 
 </div>
 
