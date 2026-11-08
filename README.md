@@ -1,15 +1,16 @@
 <div align="center">
 
-<img src="assets/banner.jpg" alt="GLASSBOX — audited by code, not vibes" width="100%">
-
-# GLASSBOX
+<h1><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/lua/lua-original.svg" width="34" alt="lua"> GLASSBOX <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="34" alt="python"></h1>
 
 **AI answers, audited by code — not vibes.**
 
-[![MCP](https://img.shields.io/badge/MCP-server-00e5ff?style=flat-square)](https://modelcontextprotocol.io)
-[![Lua](https://img.shields.io/badge/core-Lua%205.4-8b5cf6?style=flat-square)](https://www.lua.org)
-[![Python](https://img.shields.io/badge/adapter-Python%203-3776AB?style=flat-square)](https://www.python.org)
-[![License: MIT](https://img.shields.io/badge/license-MIT-34d399?style=flat-square)](LICENSE)
+![CI](https://github.com/DERYK-RYLOY/glassbox/actions/workflows/ci.yml/badge.svg)
+![MCP](https://img.shields.io/badge/MCP-server-00e5ff?style=flat-square)
+![License: MIT](https://img.shields.io/badge/license-MIT-34d399?style=flat-square)
+
+<br>
+
+<img src="https://raw.githubusercontent.com/DERYK-RYLOY/glassbox/main/assets/marquee.svg" alt="AI CLIs" width="100%">
 
 </div>
 
@@ -22,10 +23,6 @@ Glassbox is a **super-thinking + auditing layer for AI coding agents**. When you
 It forces every plan through a recursive verification loop, scores trust **0–100** with a plain-English verdict, writes the receipts (every assumption, every risk, every step's acceptance check), and renders the whole thing as a neon HTML cockpit — so anyone can see *why* the AI believes its answer.
 
 **No claims without receipts. No plan without a trust score. No reasoning without a verifier signing off.**
-
-<div align="center"><img src="assets/logo.png" alt="Glassbox mark" width="180"></div>
-
----
 
 ## Install — 60 seconds, zero babysitting
 
@@ -56,11 +53,9 @@ Manual setup (any CLI that speaks [MCP](https://modelcontextprotocol.io)):
 } } } }
 ```
 
----
-
 ## The toolkit
 
-| Icon | Tool | What it does |
+| | Tool | What it does |
 |:---:|---|---|
 | 🧭 | `glassbox_status` | Health check + which backend is active (Lua / Python fallback) |
 | 🗺️ | `glassbox_plan_skeleton` | Turns a goal into a filled-in-by-your-AI structured plan |
@@ -83,7 +78,20 @@ python python/glassbox_cli.py --list
 echo '{"title":"ship","goal":"x","steps":[]}' | python python/glassbox_cli.py glassbox_trust_report
 ```
 
----
+## Built on
+
+<div align="center">
+
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/lua/lua-original.svg" width="42" title="Lua" alt="Lua">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="42" title="Python" alt="Python">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" width="42" title="Node.js" alt="Node.js">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" width="42" title="TypeScript" alt="TypeScript">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rust/rust-original.svg" width="42" title="Rust" alt="Rust">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" width="42" title="Docker" alt="Docker">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="42" title="Git" alt="Git">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" width="42" title="GitHub" alt="GitHub">
+
+</div>
 
 ## The 10-second architecture
 

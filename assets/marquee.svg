@@ -1,0 +1,196 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="116" viewBox="0 0 1440 116" role="img" aria-label="AI CLIs Glassbox works with">
+  <defs>
+    <linearGradient id="frame" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00e5ff" stop-opacity="0.55"/>
+      <stop offset="0.5" stop-color="#8b5cf6" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#00e5ff" stop-opacity="0.55"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0.02"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.0"/>
+    </linearGradient>
+    <clipPath id="win"><rect x="14" y="6" width="1412" height="104" rx="18"/></clipPath>
+    <linearGradient id="fadeL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0a0f1c" stop-opacity="1"/><stop offset="1" stop-color="#0a0f1c" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fadeR" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0a0f1c" stop-opacity="0"/><stop offset="1" stop-color="#0a0f1c" stop-opacity="1"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="2" y="2" width="1436" height="112" rx="22" fill="#0a0f1c" fill-opacity="0.92"
+        stroke="url(#frame)" stroke-width="1.6"/>
+  <rect x="14" y="6" width="1412" height="44.0" rx="18" fill="url(#sheen)" opacity="0.55" clip-path="url(#win)"/>
+
+  <g clip-path="url(#win)">
+    <g>
+      <animateTransform attributeName="transform" type="translate" from="0 0" to="-1350 0"
+                        dur="70s" repeatCount="indefinite"/>
+  <g>
+    <rect x="20" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#22d3ee" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="43" cy="45" r="17.5" fill="#22d3ee" fill-opacity="0.14"/>
+    <text x="43" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#22d3ee" letter-spacing="0.5">OC</text>
+    <text x="43" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">OPENCODE</text>
+  </g>
+  <g>
+    <rect x="170" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#d97757" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="193" cy="45" r="17.5" fill="#d97757" fill-opacity="0.14"/>
+    <text x="193" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#d97757" letter-spacing="0.5">CC</text>
+    <text x="193" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">CLAUDE CODE</text>
+  </g>
+  <g>
+    <rect x="320" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#a5b4fc" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="343" cy="45" r="17.5" fill="#a5b4fc" fill-opacity="0.14"/>
+    <text x="343" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#a5b4fc" letter-spacing="0.5">CR</text>
+    <text x="343" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">CURSOR</text>
+  </g>
+  <g>
+    <rect x="470" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#34d399" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="493" cy="45" r="17.5" fill="#34d399" fill-opacity="0.14"/>
+    <text x="493" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#34d399" letter-spacing="0.5">AD</text>
+    <text x="493" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">AIDER</text>
+  </g>
+  <g>
+    <rect x="620" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#4285f4" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="643" cy="45" r="17.5" fill="#4285f4" fill-opacity="0.14"/>
+    <text x="643" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#4285f4" letter-spacing="0.5">GC</text>
+    <text x="643" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">GEMINI CLI</text>
+  </g>
+  <g>
+    <rect x="770" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#10a37f" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="793" cy="45" r="17.5" fill="#10a37f" fill-opacity="0.14"/>
+    <text x="793" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#10a37f" letter-spacing="0.5">CX</text>
+    <text x="793" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">CODEX CLI</text>
+  </g>
+  <g>
+    <rect x="920" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#e6edf3" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="943" cy="45" r="17.5" fill="#e6edf3" fill-opacity="0.14"/>
+    <text x="943" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#e6edf3" letter-spacing="0.5">CP</text>
+    <text x="943" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">COPILOT</text>
+  </g>
+  <g>
+    <rect x="1070" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#fb923c" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="1093" cy="45" r="17.5" fill="#fb923c" fill-opacity="0.14"/>
+    <text x="1093" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#fb923c" letter-spacing="0.5">WS</text>
+    <text x="1093" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">WINDSURF</text>
+  </g>
+  <g>
+    <rect x="1220" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#8b5cf6" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="1243" cy="45" r="17.5" fill="#8b5cf6" fill-opacity="0.14"/>
+    <text x="1243" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#8b5cf6" letter-spacing="0.5">MCP</text>
+    <text x="1243" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">MCP</text>
+  </g>
+<g transform="translate(1350,0)">  <g>
+    <rect x="20" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#22d3ee" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="43" cy="45" r="17.5" fill="#22d3ee" fill-opacity="0.14"/>
+    <text x="43" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#22d3ee" letter-spacing="0.5">OC</text>
+    <text x="43" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">OPENCODE</text>
+  </g></g>
+<g transform="translate(1350,0)">  <g>
+    <rect x="170" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#d97757" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="193" cy="45" r="17.5" fill="#d97757" fill-opacity="0.14"/>
+    <text x="193" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#d97757" letter-spacing="0.5">CC</text>
+    <text x="193" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">CLAUDE CODE</text>
+  </g></g>
+<g transform="translate(1350,0)">  <g>
+    <rect x="320" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#a5b4fc" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="343" cy="45" r="17.5" fill="#a5b4fc" fill-opacity="0.14"/>
+    <text x="343" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#a5b4fc" letter-spacing="0.5">CR</text>
+    <text x="343" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">CURSOR</text>
+  </g></g>
+<g transform="translate(1350,0)">  <g>
+    <rect x="470" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#34d399" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="493" cy="45" r="17.5" fill="#34d399" fill-opacity="0.14"/>
+    <text x="493" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#34d399" letter-spacing="0.5">AD</text>
+    <text x="493" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">AIDER</text>
+  </g></g>
+<g transform="translate(1350,0)">  <g>
+    <rect x="620" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#4285f4" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="643" cy="45" r="17.5" fill="#4285f4" fill-opacity="0.14"/>
+    <text x="643" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#4285f4" letter-spacing="0.5">GC</text>
+    <text x="643" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">GEMINI CLI</text>
+  </g></g>
+<g transform="translate(1350,0)">  <g>
+    <rect x="770" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#10a37f" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="793" cy="45" r="17.5" fill="#10a37f" fill-opacity="0.14"/>
+    <text x="793" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#10a37f" letter-spacing="0.5">CX</text>
+    <text x="793" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">CODEX CLI</text>
+  </g></g>
+<g transform="translate(1350,0)">  <g>
+    <rect x="920" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#e6edf3" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="943" cy="45" r="17.5" fill="#e6edf3" fill-opacity="0.14"/>
+    <text x="943" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#e6edf3" letter-spacing="0.5">CP</text>
+    <text x="943" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">COPILOT</text>
+  </g></g>
+<g transform="translate(1350,0)">  <g>
+    <rect x="1070" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#fb923c" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="1093" cy="45" r="17.5" fill="#fb923c" fill-opacity="0.14"/>
+    <text x="1093" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#fb923c" letter-spacing="0.5">WS</text>
+    <text x="1093" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">WINDSURF</text>
+  </g></g>
+<g transform="translate(1350,0)">  <g>
+    <rect x="1220" y="22" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
+          stroke="#8b5cf6" stroke-opacity="0.85" stroke-width="1.6"/>
+    <circle cx="1243" cy="45" r="17.5" fill="#8b5cf6" fill-opacity="0.14"/>
+    <text x="1243" y="49" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="13" font-weight="800" fill="#8b5cf6" letter-spacing="0.5">MCP</text>
+    <text x="1243" y="92" text-anchor="middle" font-family="Consolas,Menlo,monospace"
+          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">MCP</text>
+  </g></g>
+    </g>
+    <rect x="0" y="0" width="90" height="116" fill="url(#fadeL)"/>
+    <rect x="1350" y="0" width="90" height="116" fill="url(#fadeR)"/>
+  </g>
+</svg>
