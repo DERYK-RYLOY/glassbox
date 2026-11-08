@@ -2,7 +2,7 @@
 
 <img src="assets/banner.jpg" alt="GLASSBOX — audited by code, not vibes" width="100%">
 
-<h1><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/lua/lua-original.svg" width="26" alt="lua"> GLASSBOX <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="26" alt="python"></h1>
+<h1><img src="assets/logo-256.png" width="30" alt="GLASSBOX cube"> GLASSBOX</h1>
 
 **AI answers, audited by code — not vibes.**
 

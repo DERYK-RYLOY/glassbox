@@ -107,11 +107,14 @@ def step_html(step):
       <div class='sver'>verify: {html.escape(str(step.get('verify','')))}</div>
       <span class='risk {risk_cls}'>{risk_cls.upper()} RISK</span></div></div>"""
 
-def report_html(plan, trust=None, receipts=None, source="GLASSBOX AUDIT", logo_data: str = ""):
+def report_html(plan, trust=None, receipts=None, source="GLASSBOX AUDIT", logo_data: str = "", favicon_data: str = ""):
     if not logo_data:
-        logo_path = ROOT / "assets" / "logo.png"
         import base64
-        logo_data = "data:image/png;base64," + base64.b64encode(logo_path.read_bytes()).decode()
+        small = ROOT / "assets" / "logo-256.png"
+        big = ROOT / "assets" / "logo.png"
+        logo_data = "data:image/png;base64," + base64.b64encode((small if small.exists() else big).read_bytes()).decode()
+        tiny = ROOT / "assets" / "logo-64.png"
+        favicon_data = "data:image/png;base64," + base64.b64encode((tiny if tiny.exists() else small).read_bytes()).decode()
     trust = trust or {"score": 0, "verdict": "UNSCORED", "counts": {}, "issues": []}
     score = int(trust.get("score", 0))
     risks = plan.get("risks", []) or []
@@ -137,6 +140,7 @@ def report_html(plan, trust=None, receipts=None, source="GLASSBOX AUDIT", logo_d
     return f"""<!doctype html><html lang='en'><head><meta charset='utf-8'>
 <title>GLASSBOX COCKPIT - {html.escape(str(plan.get('goal','plan'))[:60])}</title>
 <meta name='viewport' content='width=device-width,initial-scale=1'>
+<link rel='icon' type='image/png' href='{favicon_data}'>
 <style>{CSS}</style></head><body><main>
 <div class='top'><div class='logo'><img src='{logo_data}' alt='GLASSBOX'></div>
   <div><h1>GLASSBOX</h1><div class='tag'>cockpit // audited by code, not vibes</div></div>
