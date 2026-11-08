@@ -14,6 +14,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 try:
@@ -400,6 +401,65 @@ def glassbox_think(task: str, findings: str) -> str:
     if items is None:
         items = [ln.strip() for ln in findings.splitlines() if ln.strip()]
     return json.dumps(_thinker_mod.thinker().think(task, items), indent=2)
+
+
+@mcp.tool()
+def glassbox_forge(task: str, seed: int = 0, per_family: int = 3, top: int = 8) -> str:
+    """The Forge — combinatorial creativity engine (Lua) ranked by the Tiny Thinker.
+
+    Deterministically generates 14+ idea scaffolds via real creativity algorithms:
+    Koestler bisociation/conceptual blending (BLEND), SCAMPER mutations, assumption negation,
+    abstraction-ladder zoom in/out, and constraint subtraction. Every idea records its operator,
+    parents and a seed rationale — fully traceable.
+
+    Returns the Thinker-ranked top-N with coherence + fertility scores and a development protocol.
+    The LLM must instantiate the ideas (mechanism, not metaphor), pre-mortem them and cross-pollinate survivors.
+    seed=0 means time-based; fix a seed for reproducibility. Scaffolds are priors, not conclusions.
+    """
+    import subprocess
+
+    lua = find_lua()
+    if not lua:
+        return json.dumps({"error": "lua.exe not found; set GLASSBOX_LUA"})
+    engine = ROOT / "core" / "forge.lua"
+    forge_seed = seed or int(time.time()) % 2147483647
+    gen = subprocess.run([lua, str(engine), "run"],
+                         input=json.dumps({"task": task, "seed": forge_seed, "per_family": int(per_family)}),
+                         capture_output=True, text=True, timeout=120)
+    if gen.returncode != 0:
+        return json.dumps({"error": f"forge engine failed: {gen.stderr.strip()}"})
+    dossier = json.loads(gen.stdout)
+    gate = subprocess.run([sys.executable, str(ROOT / "python" / "forge_gate.py")],
+                          input=json.dumps({"task": task, "ideas": dossier["ideas"], "top": int(top)}),
+                          capture_output=True, text=True, timeout=120)
+    if gate.returncode != 0:
+        dossier["gate_error"] = gate.stderr.strip()
+        return json.dumps(dossier, indent=2)
+    gated = json.loads(gate.stdout)
+    dossier["ranking"] = gated.get("ranked", [])
+    dossier["honesty"] = gated.get("honesty", dossier.get("honesty"))
+    return json.dumps(dossier, indent=2)
+
+
+@mcp.tool()
+def glassbox_deepthink(task: str, mode: str = "think_hard", context: str = "") -> str:
+    """On-demand deep thinking — only fires when the user or AI explicitly asks to think hard.
+
+    mode:
+      think_hard  = full Iron Swarm v2 with the Tiny Thinker hand-in-hand at every pass (3 scouts -> gate -> 5 analysts -> architect -> verifier, recursive until PASS)
+      brainstorm  = The Forge: 14 traced creativity scaffolds, Thinker-ranked, ready for instantiation and cross-pollination
+      todo        = structured to-do: returns the Glassbox plan skeleton your AI fills in, then glassbox_verify_plan scores it
+
+    Not for quick questions — this burns tokens by design. Returns the mode that ran, never a silent downgrade.
+    """
+    mode = (mode or "think_hard").lower().strip()
+    if mode == "think_hard":
+        return glassbox_swarm(task, context, 3, True)
+    if mode == "brainstorm":
+        return glassbox_forge(task, 0, 3, 10)
+    if mode == "todo":
+        return glassbox_plan_skeleton(task, context, "")
+    return json.dumps({"error": f"unknown mode {mode!r}; use think_hard | brainstorm | todo"})
 
 
 def main() -> None:

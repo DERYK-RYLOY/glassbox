@@ -20,15 +20,17 @@ AI tools produce answers. Glassbox produces *auditable* answers:
 glassbox/
   core/glassbox.lua          # pure-Lua core: validate/verify/trust/render/explain (zero deps)
   core/iron_swarm.lua        # pure-Lua recursive 10-agent engine (Iron Swarm v2)
+  core/forge.lua             # pure-Lua combinatorial creativity engine (bisociation/SCAMPER/...)
   python/glassbox_server.py  # MCP server exposing the core as tools
   python/glassbox_swarm.py   # bridge: drives the Lua engine from Python
   python/llm_bridge.py       # concurrent HTTP to OpenAI-compatible endpoints
   python/thinker.py          # Tiny Thinker: ~4.2 MB int8 BERT-Tiny, in-process
   python/thinker_gate.py     # gate used by Iron Swarm to filter scout noise
+  python/forge_gate.py       # Thinker ranking for Forge candidates
   python/setup_thinker.py    # rebuild the int8 model artifact
   python/models/             # thinker.int8.onnx (4.21 MB) + vocab
   examples/staging-api-plan.json
-  tests/                     # adversarial_gb1.py, thinker_gate_test.py
+  tests/                     # adversarial_gb1.py, thinker_gate_test.py, forge_test.py
 ```
 
 ## Install
@@ -55,6 +57,34 @@ This repo is git-tracked. Honesty section — what's proven vs. what isn't:
 | Parallelism | Python-side (thread pool per phase); Lua is sequential. "Agents run in parallel" = true within each bridge call |
 
 **Backend resolution order:** `GLASSBOX_LUA` env → `lua` on PATH → common install paths (`...\AppData\Local\Programs\Lua\bin\lua.exe`) → Python fallback. Check with `glassbox_status`.
+
+## The Forge — combinatorial creativity engine (`core/forge.lua`)
+
+Real creativity algorithms, not "remix your training data":
+
+| Operator | What it does |
+|---|---|
+| `BLEND` ×3 | Koestler bisociation / conceptual blending — two far-field domains × your task (e.g. `photosynthesis × mangrove roots`) |
+| `SCAMPER/*` ×7 | SUBSTITUTE, COMBINE, ADAPT, MODIFY, PUT-TO-USE, ELIMINATE, REVERSE — orthogonal systematic mutations |
+| `NEGATE` | Invert the task's load-bearing assumption |
+| `ALT-ZOOM-OUT` / `ALT-ZOOM-IN` | Ladder of abstraction — civilizational pattern down to the unmodeled atomic unit |
+| `FOCUS-SUBTRACT` | Delete the hardest constraint, redesign freely |
+
+Deterministic given a seed. Every idea is `{id, operator, parents, spark, seed_rationale}` — **fully traceable**. The Tiny Thinker then ranks by coherence (+fertility bonus for blend parents) via `python/forge_gate.py`.
+
+**The honest contract:** these are scaffolds. The LLM instantiates each (mechanism, not metaphor), pre-mortems them, cross-pollinates survivors, and `glassbox_verify_plan` gates the winner. Nothing about this bypasses the LLM's judgment — it forces it off the next-token default onto combinatorial space it would never visit alone.
+
+## Deep Think — the on-demand mode
+
+Glassbox only burns deep-thinking budget when explicitly invoked:
+
+```
+glassbox_deepthink task="..." mode="think_hard"   # full Iron Swarm + Thinker at every pass
+glassbox_deepthink task="..." mode="brainstorm"   # Forge dossier: 14 traced, Thinker-ranked seeds
+glassbox_deepthink task="..." mode="todo"         # structured to-do plan skeleton -> verify -> trust score
+```
+
+Tool suite is now **11 tools**: +`glassbox_forge` (the creativity engine) and `glassbox_deepthink` (the mode dispatcher).
 
 ## Tiny Thinker (int8 BERT-Tiny, ~4.2 MB, in-process)
 
