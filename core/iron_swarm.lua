@@ -137,7 +137,7 @@ end
 
 -- Call the Tiny Thinker gate (python subprocess). Fail-open: returns nil on any error.
 local function call_thinker(task, items, threshold)
-  math.randomseed(os.time() + os.clock() * 1000)
+  math.randomseed((os.time() + os.clock() * 1000) // 1 % 2147483647)
   local req_file, res_file = _temp_file("treq"), _temp_file("tres")
   local fh = io.open(req_file, "w")
   if not fh then return nil end
@@ -175,7 +175,7 @@ end
 
 local function call_agents(requests)
   -- requests: { {role, system, user, max_tokens?}, ... } - sent concurrently
-  math.randomseed(os.time() + os.clock() * 1000)
+  math.randomseed((os.time() + os.clock() * 1000) // 1 % 2147483647)
   local req_file, res_file = _temp_file("req"), _temp_file("res")
 
   local fh = assert(io.open(req_file, "w"))
