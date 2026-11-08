@@ -1,82 +1,90 @@
-"""Generate assets/marquee.svg - a slow, infinite, glassmorphism marquee of AI CLIs.
-Fully self-contained SVG (SMIL) so it animates inside <img> on GitHub.
-Glyphs are original monograms - not official trademarks.
+"""Generate assets/marquee.svg - slow infinite glassmorphism marquee of AI CLIs.
+Real icons, embedded as base64 data URIs (self-contained, animates on GitHub).
+Sources: @lobehub/icons (MIT) and aider.chat/assets/logo.svg.
 """
+import base64
 from pathlib import Path
 
-OUT = Path(__file__).resolve().parent.parent / "assets" / "marquee.svg"
+ROOT = Path(__file__).resolve().parent.parent
+ICONS = ROOT / "assets" / "icons"
+OUT = ROOT / "assets" / "marquee.svg"
 
-ITEMS = [
-    ("OC", "OPENCODE",  "#22d3ee"),
-    ("CC", "CLAUDE CODE", "#d97757"),
-    ("CR", "CURSOR",    "#a5b4fc"),
-    ("AD", "AIDER",     "#34d399"),
-    ("GC", "GEMINI CLI","#4285f4"),
-    ("CX", "CODEX CLI", "#10a37f"),
-    ("CP", "COPILOT",   "#e6edf3"),
-    ("WS", "WINDSURF",  "#fb923c"),
-    ("MCP", "MCP",      "#8b5cf6"),
+ITEMS = [  # (file, label, cell width, icon width, icon height)
+    ("opencode.svg",   "OPENCODE",    150, 30, 30),
+    ("claudecode.svg", "CLAUDE CODE", 175, 30, 30),
+    ("codex.svg",      "CODEX CLI",   155, 30, 30),
+    ("copilot.svg",    "COPILOT",     150, 30, 30),
+    ("cursor.svg",     "CURSOR",      140, 30, 30),
+    ("geminicli.svg",  "GEMINI CLI",  175, 30, 30),
+    ("windsurf.svg",   "WINDSURF",    160, 30, 30),
+    ("mcp.svg",        "MCP",         125, 30, 30),
+    ("aider.svg",      "AIDER",       175, 66, 20),
 ]
 
-ITEM_W = 150
-HALF = ITEM_W * len(ITEMS)
-W, H = 1440, 116
-Y_ICON = 22
-Y_TEXT = 92
+H = 92
+Y_ICON, Y_TEXT = 14, 74
 
-def chip(idx, key, label, color):
-    x = idx * ITEM_W + 20
-    cx = x + 23
-    return f"""  <g>
-    <rect x="{x}" y="{Y_ICON}" width="46" height="46" rx="12" fill="rgba(255,255,255,0.045)"
-          stroke="{color}" stroke-opacity="0.85" stroke-width="1.6"/>
-    <circle cx="{cx}" cy="{Y_ICON+23}" r="17.5" fill="{color}" fill-opacity="0.14"/>
-    <text x="{cx}" y="{Y_ICON+27}" text-anchor="middle" font-family="Consolas,Menlo,monospace"
-          font-size="13" font-weight="800" fill="{color}" letter-spacing="0.5">{key}</text>
-    <text x="{x+23}" y="{Y_TEXT}" text-anchor="middle" font-family="Consolas,Menlo,monospace"
-          font-size="9.5" fill="#dbe6ff" fill-opacity="0.92" letter-spacing="1.6">{label}</text>
-  </g>"""
+def x_positions():
+    xs, acc = [], 0
+    for _, _, w, _, _ in ITEMS:
+        xs.append(acc)
+        acc += w
+    return xs, acc
 
-row = "\n".join(chip(i, *it) for i, it in enumerate(ITEMS))
-row2 = "\n".join(f'<g transform="translate({HALF},0)">{chip(i, *it)}</g>' for i, it in enumerate(ITEMS))
+XS, HALF = x_positions()
+W = HALF
 
-svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" role="img" aria-label="AI CLIs Glassbox works with">
+def cell(it, x):
+    f, label, w, iw, ih = it
+    data = base64.b64encode((ICONS / f).read_bytes()).decode()
+    ix = x + (w - iw) / 2
+    ly = Y_ICON + 34 if ih == 30 else Y_ICON + (34 - ih) / 2 + ih / 2 + 12
+    return f"""    <g>
+      <image x="{ix}" y="{Y_ICON + (30 - ih) / 2 if ih != 30 else Y_ICON}" width="{iw}" height="{ih}"
+             href="data:image/svg+xml;base64,{data}"/>
+      <text x="{x + w / 2}" y="{Y_TEXT}" text-anchor="middle"
+            font-family="Consolas,Menlo,monospace" font-size="8.5" fill="#c9d6ff"
+            fill-opacity="0.95" letter-spacing="2">{label}</text>
+    </g>"""
+
+row1 = "\n".join(cell(it, x) for it, x in zip(ITEMS, XS))
+row2 = "\n".join(f'    <g transform="translate({HALF},0)">{cell(it, x)}</g>' for it, x in zip(ITEMS, XS))
+
+svg = f"""<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{W}" height="{H}" viewBox="0 0 {W} {H}" role="img" aria-label="AI CLIs Glassbox works with">
   <defs>
     <linearGradient id="frame" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#00e5ff" stop-opacity="0.55"/>
-      <stop offset="0.5" stop-color="#8b5cf6" stop-opacity="0.55"/>
-      <stop offset="1" stop-color="#00e5ff" stop-opacity="0.55"/>
+      <stop offset="0" stop-color="#00e5ff"/><stop offset="0.5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#00e5ff"/>
     </linearGradient>
     <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/>
-      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0.02"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0.0"/>
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.14"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.03"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
     </linearGradient>
-    <clipPath id="win"><rect x="14" y="6" width="{W-28}" height="{H-12}" rx="18"/></clipPath>
     <linearGradient id="fadeL" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#0a0f1c" stop-opacity="1"/><stop offset="1" stop-color="#0a0f1c" stop-opacity="0"/>
+      <stop offset="0" stop-color="#070b16"/><stop offset="1" stop-color="#070b16" stop-opacity="0"/>
     </linearGradient>
     <linearGradient id="fadeR" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#0a0f1c" stop-opacity="0"/><stop offset="1" stop-color="#0a0f1c" stop-opacity="1"/>
+      <stop offset="0" stop-color="#070b16" stop-opacity="0"/><stop offset="1" stop-color="#070b16"/>
     </linearGradient>
+    <clipPath id="win"><rect x="10" y="4" width="{W-20}" height="{H-8}" rx="14"/></clipPath>
   </defs>
 
-  <rect x="2" y="2" width="{W-4}" height="{H-4}" rx="22" fill="#0a0f1c" fill-opacity="0.92"
-        stroke="url(#frame)" stroke-width="1.6"/>
-  <rect x="14" y="6" width="{W-28}" height="{H//2.6}" rx="18" fill="url(#sheen)" opacity="0.55" clip-path="url(#win)"/>
+  <rect x="1.5" y="1.5" width="{W-3}" height="{H-3}" rx="16" fill="#070b16" fill-opacity="0.94"
+        stroke="url(#frame)" stroke-opacity="0.6" stroke-width="1.3"/>
+  <rect x="10" y="4" width="{W-20}" height="{H//2.6}" rx="14" fill="url(#sheen)" opacity="0.6" clip-path="url(#win)"/>
 
   <g clip-path="url(#win)">
     <g>
       <animateTransform attributeName="transform" type="translate" from="0 0" to="-{HALF} 0"
-                        dur="70s" repeatCount="indefinite"/>
-{row}
+                        dur="90s" repeatCount="indefinite" calcMode="linear"/>
+{row1}
 {row2}
     </g>
-    <rect x="0" y="0" width="90" height="{H}" fill="url(#fadeL)"/>
-    <rect x="{W-90}" y="0" width="90" height="{H}" fill="url(#fadeR)"/>
+    <rect x="0" y="0" width="64" height="{H}" fill="url(#fadeL)"/>
+    <rect x="{W-64}" y="0" width="64" height="{H}" fill="url(#fadeR)"/>
   </g>
 </svg>
 """
 
 OUT.write_text(svg, encoding="utf-8")
-print("written", OUT, len(svg), "bytes")
+print("written", OUT, len(svg), "bytes | half-width", HALF)

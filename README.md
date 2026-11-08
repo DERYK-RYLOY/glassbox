@@ -1,6 +1,8 @@
 <div align="center">
 
-<h1><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/lua/lua-original.svg" width="34" alt="lua"> GLASSBOX <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="34" alt="python"></h1>
+<img src="assets/banner.jpg" alt="GLASSBOX — audited by code, not vibes" width="100%">
+
+<h1><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/lua/lua-original.svg" width="26" alt="lua"> GLASSBOX <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="26" alt="python"></h1>
 
 **AI answers, audited by code — not vibes.**
 
@@ -9,8 +11,6 @@
 ![License: MIT](https://img.shields.io/badge/license-MIT-34d399?style=flat-square)
 
 <br>
-
-<img src="https://raw.githubusercontent.com/DERYK-RYLOY/glassbox/main/assets/marquee.svg" alt="AI CLIs" width="100%">
 
 </div>
 
@@ -23,6 +23,14 @@ Glassbox is a **super-thinking + auditing layer for AI coding agents**. When you
 It forces every plan through a recursive verification loop, scores trust **0–100** with a plain-English verdict, writes the receipts (every assumption, every risk, every step's acceptance check), and renders the whole thing as a neon HTML cockpit — so anyone can see *why* the AI believes its answer.
 
 **No claims without receipts. No plan without a trust score. No reasoning without a verifier signing off.**
+
+<div align="center">
+
+### Works natively with your AI CLI
+
+<img src="assets/marquee.svg" alt="OpenCode · Claude Code · Codex CLI · Copilot · Cursor · Gemini CLI · Windsurf · MCP · Aider" width="100%">
+
+</div>
 
 ## Install — 60 seconds, zero babysitting
 
@@ -55,20 +63,20 @@ Manual setup (any CLI that speaks [MCP](https://modelcontextprotocol.io)):
 
 ## The toolkit
 
-| | Tool | What it does |
-|:---:|---|---|
-| 🧭 | `glassbox_status` | Health check + which backend is active (Lua / Python fallback) |
-| 🗺️ | `glassbox_plan_skeleton` | Turns a goal into a filled-in-by-your-AI structured plan |
-| ✅ | `glassbox_validate_plan` | Structural check: dup IDs, dangling deps, missing rationale |
-| 🔍 | `glassbox_verify_plan` | Deep audit: dependency cycles, SPOFs, high-risk steps, rollback coverage |
-| 📊 | `glassbox_trust_report` | 0–100 trust score with a plain-English verdict (`SOLID` / `WORKABLE` / `FRAGILE` / `DO NOT EXECUTE`) |
-| 📋 | `glassbox_render` | Render plans as **ASCII tables** or **Mermaid flowcharts** |
-| 🗣️ | `glassbox_explain` | Plain-language walkthrough: what, why, receipts, definition of done |
-| 🐝 | `glassbox_swarm` | **Iron Swarm** — recursive 10-agent deep-thinking pipeline (scouts ∥ → analysts ∥ → architect → verifier, looping until PASS) |
-| 🪶 | `glassbox_think` | **Tiny Thinker** — a 4.2 MB int8 BERT-Tiny, in-process: relevance gating, dedup, contradiction hints |
-| 🎨 | `glassbox_forge` | **The Forge** — combinatorial creativity engine: bisociation, SCAMPER, negation, abstraction ladder. Ranked by the Tiny Thinker |
-| 🧠 | `glassbox_deepthink` | The on-demand switch: `think_hard` · `brainstorm` · `todo` |
-| 🖼️ | `glassbox_report` | The **GLASSBOX COCKPIT** — one call opens your plan as a neon dashboard in the browser |
+| Tool | What it does |
+|---|---|
+| `glassbox_status` | Health check + which backend is active (Lua / Python fallback) |
+| `glassbox_plan_skeleton` | Turns a goal into a filled-in-by-your-AI structured plan |
+| `glassbox_validate_plan` | Structural check: dup IDs, dangling deps, missing rationale |
+| `glassbox_verify_plan` | Deep audit: dependency cycles, SPOFs, high-risk steps, rollback coverage |
+| `glassbox_trust_report` | 0–100 trust score with a plain-English verdict (`SOLID` / `WORKABLE` / `FRAGILE` / `DO NOT EXECUTE`) |
+| `glassbox_render` | Render plans as **ASCII tables** or **Mermaid flowcharts** |
+| `glassbox_explain` | Plain-language walkthrough: what, why, receipts, definition of done |
+| `glassbox_swarm` | **Iron Swarm** — recursive 10-agent deep-thinking pipeline (scouts ∥ → analysts ∥ → architect → verifier, looping until PASS) |
+| `glassbox_think` | **Tiny Thinker** — a 4.2 MB int8 BERT-Tiny, in-process: relevance gating, dedup, contradiction hints |
+| `glassbox_forge` | **The Forge** — combinatorial creativity engine: bisociation, SCAMPER, negation, abstraction ladder. Ranked by the Tiny Thinker |
+| `glassbox_deepthink` | The on-demand switch: `think_hard` · `brainstorm` · `todo` |
+| `glassbox_report` | The **GLASSBOX COCKPIT** — one call opens your plan as a neon dashboard in the browser |
 
 **12 tools. One JSON contract. Works everywhere — including CLIs with no MCP at all:**
 
@@ -82,14 +90,14 @@ echo '{"title":"ship","goal":"x","steps":[]}' | python python/glassbox_cli.py gl
 
 <div align="center">
 
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/lua/lua-original.svg" width="42" title="Lua" alt="Lua">&nbsp;&nbsp;
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="42" title="Python" alt="Python">&nbsp;&nbsp;
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" width="42" title="Node.js" alt="Node.js">&nbsp;&nbsp;
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" width="42" title="TypeScript" alt="TypeScript">&nbsp;&nbsp;
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rust/rust-original.svg" width="42" title="Rust" alt="Rust">&nbsp;&nbsp;
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" width="42" title="Docker" alt="Docker">&nbsp;&nbsp;
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="42" title="Git" alt="Git">&nbsp;&nbsp;
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" width="42" title="GitHub" alt="GitHub">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/lua/lua-original.svg" width="30" title="Lua" alt="Lua">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="30" title="Python" alt="Python">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" width="30" title="Node.js" alt="Node.js">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" width="30" title="TypeScript" alt="TypeScript">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rust/rust-original.svg" width="30" title="Rust" alt="Rust">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" width="30" title="Docker" alt="Docker">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="30" title="Git" alt="Git">&nbsp;&nbsp;
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" width="30" title="GitHub" alt="GitHub">
 
 </div>
 
