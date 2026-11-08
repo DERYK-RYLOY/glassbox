@@ -1,0 +1,31 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Lua
+        run: sudo apt-get update && sudo apt-get install -y lua5.4
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile check
+        run: python -m compileall -q python/
+      - name: Lua syntax check
+        run: luac5.4 -p core/*.lua || lua5.4 -e "assert(loadfile('core/glassbox.lua')) assert(loadfile('core/iron_swarm.lua')) assert(loadfile('core/forge.lua'))"
+      - name: Universal CLI lists all tools
+        run: python python/glassbox_cli.py --list
+      - name: Trust report on example plan
+        run: |
+          python python/glassbox_cli.py glassbox_trust_report --plan_json @examples/staging-api-plan.json | python -c "import sys, json; d = json.load(sys.stdin); assert d.get('score') is not None, 'no score'; print('trust score:', d['score'])"
+
+      - name: Recursive swarm test (mock LLM)
+        run: python tests/adversarial_gb1.py

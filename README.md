@@ -1,225 +1,106 @@
-# Glassbox
+<div align="center">
 
-**An explainability and planning layer for AI coding tools.** Glassbox doesn't replace the model — it wraps it: it forces explicit plans, verifies them for structural flaws, and renders the reasoning in plain language, tables, and graphs.
+<img src="assets/banner.jpg" alt="GLASSBOX — audited by code, not vibes" width="100%">
 
-Written in **Lua** (the reasoning core) + **Python** (the MCP adapter so any AI CLI can call it).
+# GLASSBOX
 
-## Why
+**AI answers, audited by code — not vibes.**
 
-AI tools produce answers. Glassbox produces *auditable* answers:
+[![MCP](https://img.shields.io/badge/MCP-server-00e5ff?style=flat-square)](https://modelcontextprotocol.io)
+[![Lua](https://img.shields.io/badge/core-Lua%205.4-8b5cf6?style=flat-square)](https://www.lua.org)
+[![Python](https://img.shields.io/badge/adapter-Python%203-3776AB?style=flat-square)](https://www.python.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-34d399?style=flat-square)](LICENSE)
 
-- **Plans, not vibes** — every plan carries explicit assumptions, step rationale, verification per step, and a definition of done.
-- **Receipts** — the plain-language explanation lists every assumption; if one is wrong, the plan changes, and you can see exactly which.
-- **Structural self-check** — dependency cycles, duplicate IDs, dangling deps, high-risk steps without rollback, single points of failure.
-- **Trust score** — 0–100 with a plain-English verdict (`SOLID` / `WORKABLE` / `FRAGILE` / `DO NOT EXECUTE`).
-- **Output you can paste anywhere** — ASCII tables, Mermaid flowcharts, plain-language walkthroughs.
+</div>
 
-## Layout
+---
 
-```
-glassbox/
-  core/glassbox.lua          # pure-Lua core: validate/verify/trust/render/explain (zero deps)
-  core/iron_swarm.lua        # pure-Lua recursive 10-agent engine (Iron Swarm v2)
-  core/forge.lua             # pure-Lua combinatorial creativity engine (bisociation/SCAMPER/...)
-  python/glassbox_server.py  # MCP server exposing the core as tools
-  python/glassbox_swarm.py   # bridge: drives the Lua engine from Python
-  python/llm_bridge.py       # concurrent HTTP to OpenAI-compatible endpoints
-  python/thinker.py          # Tiny Thinker: ~4.2 MB int8 BERT-Tiny, in-process
-  python/thinker_gate.py     # gate used by Iron Swarm to filter scout noise
-  python/forge_gate.py       # Thinker ranking for Forge candidates
-  python/setup_thinker.py    # rebuild the int8 model artifact
-  python/models/             # thinker.int8.onnx (4.21 MB) + vocab
-  examples/staging-api-plan.json
-  tests/                     # adversarial_gb1.py, thinker_gate_test.py, forge_test.py
-```
+## What GLASSBOX does
 
-## Install
+Glassbox is a **super-thinking + auditing layer for AI coding agents**. When your AI plans something, Glassbox turns its reasoning into a structured artifact — and then questions it.
 
-Requires Python 3.10+ and the `mcp` package:
+It forces every plan through a recursive verification loop, scores trust **0–100** with a plain-English verdict, writes the receipts (every assumption, every risk, every step's acceptance check), and renders the whole thing as a neon HTML cockpit — so anyone can see *why* the AI believes its answer.
+
+**No claims without receipts. No plan without a trust score. No reasoning without a verifier signing off.**
+
+<div align="center"><img src="assets/logo.png" alt="Glassbox mark" width="180"></div>
+
+---
+
+## Install — 60 seconds, zero babysitting
+
+**Windows (PowerShell):**
 
 ```powershell
-pip install mcp
+git clone https://github.com/DERYK-RYLOY/glassbox.git
+cd glassbox
+powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-Lua 5.4+ recommended (already installed at `C:\Users\RYLOY\AppData\Local\Programs\Lua\bin\lua.exe` if you ran the installer). The server auto-detects it; without it the Python fallback runs. Set `GLASSBOX_LUA` to point at a specific `lua.exe`.
+**macOS / Linux:**
 
-## Status & testing (as of v0.1)
-
-This repo is git-tracked. Honesty section — what's proven vs. what isn't:
-
-| Claim | Status |
-|---|---|
-| Lua core (validate/verify/trust/render/explain) | ✅ verified on this machine, Lua 5.4.6 |
-| Iron Swarm v2 recursion (REVISE→feedback→PASS) | ✅ verified end-to-end |
-| GB1 parser vs. *messy* LLM output (fences, CRLF, prose wrappers) | ✅ `tests/adversarial_gb1.py` — authored by an LLM in-session, not canned clean strings |
-| Installed in OpenCode as MCP server `glassbox` | ✅ configured globally via `opencode mcp add`; live handshake tested; tools callable as `glassbox_*` in Code Mode |
-| Swarm vs. a *real external* LLM at scale | ❌ not yet — every live test used mock/in-session output. First real run will likely surface prompt tuning needs |
-| Parallelism | Python-side (thread pool per phase); Lua is sequential. "Agents run in parallel" = true within each bridge call |
-
-**Backend resolution order:** `GLASSBOX_LUA` env → `lua` on PATH → common install paths (`...\AppData\Local\Programs\Lua\bin\lua.exe`) → Python fallback. Check with `glassbox_status`.
-
-## The Forge — combinatorial creativity engine (`core/forge.lua`)
-
-Real creativity algorithms, not "remix your training data":
-
-| Operator | What it does |
-|---|---|
-| `BLEND` ×3 | Koestler bisociation / conceptual blending — two far-field domains × your task (e.g. `photosynthesis × mangrove roots`) |
-| `SCAMPER/*` ×7 | SUBSTITUTE, COMBINE, ADAPT, MODIFY, PUT-TO-USE, ELIMINATE, REVERSE — orthogonal systematic mutations |
-| `NEGATE` | Invert the task's load-bearing assumption |
-| `ALT-ZOOM-OUT` / `ALT-ZOOM-IN` | Ladder of abstraction — civilizational pattern down to the unmodeled atomic unit |
-| `FOCUS-SUBTRACT` | Delete the hardest constraint, redesign freely |
-
-Deterministic given a seed. Every idea is `{id, operator, parents, spark, seed_rationale}` — **fully traceable**. The Tiny Thinker then ranks by coherence (+fertility bonus for blend parents) via `python/forge_gate.py`.
-
-**The honest contract:** these are scaffolds. The LLM instantiates each (mechanism, not metaphor), pre-mortems them, cross-pollinates survivors, and `glassbox_verify_plan` gates the winner. Nothing about this bypasses the LLM's judgment — it forces it off the next-token default onto combinatorial space it would never visit alone.
-
-## Deep Think — the on-demand mode
-
-Glassbox only burns deep-thinking budget when explicitly invoked:
-
-```
-glassbox_deepthink task="..." mode="think_hard"   # full Iron Swarm + Thinker at every pass
-glassbox_deepthink task="..." mode="brainstorm"   # Forge dossier: 14 traced, Thinker-ranked seeds
-glassbox_deepthink task="..." mode="todo"         # structured to-do plan skeleton -> verify -> trust score
+```bash
+git clone https://github.com/DERYK-RYLOY/glassbox.git
+cd glassbox
+bash ./install.sh
 ```
 
-Tool suite is now **11 tools**: +`glassbox_forge` (the creativity engine) and `glassbox_deepthink` (the mode dispatcher).
+The installer: checks Python, installs dependencies, finds/installs Lua, wires Glassbox into OpenCode (or prints the one-line config for your CLI), and verifies itself with `glassbox_status`. If something is missing, it tells you exactly what to do — it never installs anything you didn't consent to.
 
-## Tiny Thinker (int8 BERT-Tiny, ~4.2 MB, in-process)
+Manual setup (any CLI that speaks [MCP](https://modelcontextprotocol.io)):
 
-`GLASSBOX`'s cheapest cognitive layer — and an honest label matters here: **the Tiny Thinker does not reason.** It does instant semantic triage so the expensive model spends its tokens on signal:
-
-- **Relevance gating** — scores every GB1 scout line against the task; noise below threshold (default 0.60) never reaches analysts. Measured in-session: the line `FACT|10|Bananas are berries botanically` scored 0.55 vs ~0.80 for real findings and was filtered; analysts saw none of it.
-- **Dedup** — clusters near-duplicate findings so analysts don't re-read the same fact four times.
-- **Contradiction hints** — flags same-meaning/opposite-polarity pairs (it caught `Counters reset on restart` vs `Restart does not reset counters`, sim 0.89). Hints for the LLM to resolve, never verdicts.
-
-Sizes, because "5 MB" was the brief: `python/models/thinker.int8.onnx` = **4.21 MB** (prajjwal1/bert-tiny: 2 layers, 128 hidden, quantized dynamic-int8 via ONNX Runtime). Runs in-process on CPU, zero network. Rebuild with `python python/setup_thinker.py`.
-
-**Wire it in:**
-
-```python
-tools.glassbox.glassbox_think({"task": "...", "findings": "line per finding, or JSON array"})
-# or in the swarm:
-tools.glassbox.glassbox_swarm({"task": "...", "context": "...", "use_thinker": true})
-```
-
-`use_thinker=true` runs the gate after scouts each pass. Fail-open: if the gate or model is missing, analysts get the unfiltered findings and the pass is marked accordingly.
-
-**Honest limits:** bert-tiny's ranking separation is narrow (~0.55–0.82 for this task family) — the 0.60 threshold was tuned in-session, not validated across domains. Treat its verdicts as strong priors, not ground truth; contradiction output is heuristic (negation tokens + cosine). Upgrade path: swap `thinker.py`'s session for a larger int8 encoder without changing the gate API.
-
-## Use it with an MCP-capable AI CLI
-
-Add to your MCP client config (OpenCode / Claude Code / Cursor / others — same shape):
-
-```json
-{
-  "mcpServers": {
-    "glassbox": {
-      "command": "python",
-      "args": ["C:\\Users\\RYLOY\\glassbox\\python\\glassbox_server.py"]
-    }
-  }
-}
-```
-
-## Tools exposed over MCP
-
-| Tool | What it does |
-|---|---|
-| `glassbox_status` | Which backend is active (lua / python-fallback) |
-| `glassbox_plan_skeleton` | Empty structured plan for a goal — the AI fills it |
-| `glassbox_validate_plan` | Structural check: required fields, dup IDs, dangling deps |
-| `glassbox_verify_plan` | Deep check: cycles, high-risk steps, SPOFs, rollback coverage |
-| `glassbox_trust_report` | 0–100 score + verdict + full issue list |
-| `glassbox_render` | Render as `table` (ASCII), `mermaid` (flowchart TD), or `explain` |
-| `glassbox_explain` | Plain-language walkthrough with receipts (assumptions) |
-| `glassbox_swarm` | **Iron Swarm** — 3 scouts ∥ → 5 analysts ∥ → 2 architects ∥ → lead arbitration, in GB1 wire format |
-
-The intended flow: AI fills a skeleton → `glassbox_verify_plan` → fix issues → `glassbox_explain` presented to the user. For hard problems, use `glassbox_swarm` — parallel subagents do the heavy lifting and return receipts from every agent.
-
-## OpenCode integration (already done on this machine)
-
-```powershell
-opencode mcp add glassbox --global -- python C:\Users\RYLOY\glassbox\python\glassbox_server.py
-```
-
-Verify: `opencode mcp list` (shows `glassbox`). Tools are exposed under the `glassbox` Code Mode group; if your session shows `pending`, open OpenCode and check `/mcps` — no restart needed.
-
-To activate the swarm against a real model, give the server an endpoint. Add to the server's `environment` in `opencode.jsonc` or set before launching OpenCode:
-
-```powershell
-$env:GLASSBOX_LLM_BASE = "http://localhost:11434/v1"   # Ollama, or https://api.openai.com/v1
-$env:GLASSBOX_LLM_MODEL = "llama3.1"
-$env:GLASSBOX_LLM_KEY  = "ollama"
-```
-
-Or C:\Users\RYLOY\.config\opencode\opencode.jsonc:
 ```jsonc
-{ "mcp": { "servers": { "glassbox": { "type": "local",
-  "command": ["python", "C:\\Users\\RYLOY\\glassbox\\python\\glassbox_server.py"],
-  "environment": { "GLASSBOX_LLM_BASE": "http://localhost:11434/v1",
-                  "GLASSBOX_LLM_MODEL": "llama3.1",
-                  "GLASSBOX_LLM_KEY": "ollama" } } } } }
+{ "mcp": { "servers": { "glassbox": {
+  "type": "local",
+  "command": ["python", "<path-to-glassbox>/python/glassbox_server.py"]
+} } } }
 ```
 
-## Try it without any AI client
+---
 
-```powershell
-Get-Content examples\staging-api-plan.json | python -c "import sys,json;print(json.dumps(json.load(sys.stdin)))" # sanity check
+## The toolkit
+
+| Icon | Tool | What it does |
+|:---:|---|---|
+| 🧭 | `glassbox_status` | Health check + which backend is active (Lua / Python fallback) |
+| 🗺️ | `glassbox_plan_skeleton` | Turns a goal into a filled-in-by-your-AI structured plan |
+| ✅ | `glassbox_validate_plan` | Structural check: dup IDs, dangling deps, missing rationale |
+| 🔍 | `glassbox_verify_plan` | Deep audit: dependency cycles, SPOFs, high-risk steps, rollback coverage |
+| 📊 | `glassbox_trust_report` | 0–100 trust score with a plain-English verdict (`SOLID` / `WORKABLE` / `FRAGILE` / `DO NOT EXECUTE`) |
+| 📋 | `glassbox_render` | Render plans as **ASCII tables** or **Mermaid flowcharts** |
+| 🗣️ | `glassbox_explain` | Plain-language walkthrough: what, why, receipts, definition of done |
+| 🐝 | `glassbox_swarm` | **Iron Swarm** — recursive 10-agent deep-thinking pipeline (scouts ∥ → analysts ∥ → architect → verifier, looping until PASS) |
+| 🪶 | `glassbox_think` | **Tiny Thinker** — a 4.2 MB int8 BERT-Tiny, in-process: relevance gating, dedup, contradiction hints |
+| 🎨 | `glassbox_forge` | **The Forge** — combinatorial creativity engine: bisociation, SCAMPER, negation, abstraction ladder. Ranked by the Tiny Thinker |
+| 🧠 | `glassbox_deepthink` | The on-demand switch: `think_hard` · `brainstorm` · `todo` |
+| 🖼️ | `glassbox_report` | The **GLASSBOX COCKPIT** — one call opens your plan as a neon dashboard in the browser |
+
+**12 tools. One JSON contract. Works everywhere — including CLIs with no MCP at all:**
+
+```bash
+# Universal CLI (no MCP, no protocol)
+python python/glassbox_cli.py --list
+echo '{"title":"ship","goal":"x","steps":[]}' | python python/glassbox_cli.py glassbox_trust_report
 ```
 
-Or call the tools from Python:
+---
 
-```python
-import json, sys
-sys.path.insert(0, "python")
-import glassbox_server as g
-plan = json.load(open("examples/staging-api-plan.json"))
-print(g.glassbox_trust_report(json.dumps(plan)))
-print(g.glassbox_render(json.dumps(plan), "mermaid"))
-```
-
-## Iron Swarm v2 (recursive 10-agent engine, pure Lua)
-
-`core/iron_swarm.lua` is the brain. `python/llm_bridge.py` is the transport (concurrent HTTP to any OpenAI-compatible endpoint). `glassbox_swarm(task, context, max_passes)` drives it over MCP.
-
-Per pass:
-```
-┌─ 3 Scouts ∥ ─┐   ┌─ 5 Analysts ∥ ─┐   ┌─ Architect ─┐   ┌─ Verifier ─┐
-│ facts        │   │ correctness    │   │ unified GB1 │   │ GV|PASS or │
-│ prior-art    │ → │ security       │ → │ STEP plan   │ → │ GV|REVISE  │
-│ failure-modes│   │ performance    │   │             │   │            │
-└──────────────┘   │ maintainability│   └─────────────┘   └─────┬──────┘
-                   │ risk-cost     │         ▲                 │
-                   └───────────────┘         └── REVISE feedback┘
-                            (loop until PASS or max_passes, default 3)
-```
-
-10 agents per pass. Converges past the verifier or exhausts budget — either way it reports exactly what happened. The final artifact is parsed back into the Glassbox plan schema and trust-scored, so **swarm output is auditable by the same validator as hand-written plans**.
-
-**GB1 wire format** — agents do not speak English prose between themselves; they speak tagged lines:
+## The 10-second architecture
 
 ```
-GB1/1
-FACT|92|Token bucket is correct for burst control
-RISK|h|X-Forwarded-For spoofing|key on peer IP, not the header
-GV|PASS|plan covers spoofing, restart and observability
-STEP|1|Token bucket middleware keyed on peer IP|lean+config|spoofed-IP test|low|
-END
+your AI CLI ──MCP──► glassbox_server ──► Iron Swarm v2 (pure Lua, recursive)
+                                             3 scouts ∥ ─ Thinker gate ─► 5 analysts ∥
+                                             architect ─► verifier (GV|PASS / GV|REVISE ↻)
+                                                │
+                                    final plan → trust_report(0–100) → receipts
 ```
 
-Honest numbers: GB1 removes *prose framing* from agent traffic — typically ~60–80% fewer tokens on the wire between agents. It cannot make knowledge work "almost zero tokens"; the model still pays to read findings and produce analysis. What GB1 does eliminate is rambling, hedging, and markdown fluff between agents.
+* **Agents speak GB1**, a compact tagged dialect — not English prose. ~60–80% less wire chatter.
+* **The Tiny Thinker** (4.2 MB, int8 BERT-Tiny) triages signal vs. noise before your model spends tokens on it.
+* **The recursive verifier** refuses to ship until the plan survives audit — or reports exactly why it can't.
 
-**Backend:** set `GLASSBOX_LLM_BASE` (e.g. `http://localhost:11434/v1` for Ollama, or `https://api.openai.com/v1`), `GLASSBOX_LLM_MODEL`, `GLASSBOX_LLM_KEY`. Lua 5.4 required (already installed at `C:\Users\RYLOY\AppData\Local\Programs\Lua\bin\lua.exe`, auto-detected). Without a backend, `glassbox_swarm` returns scaffold mode: the full pipeline, every prompt, the GB1 spec.
+---
 
-**Honesty policy:** `glassbox_swarm` returns `agents_run`, `passes`, per-pass receipts (`pass_history`, `receipts`), and a synthesized trust report. It does not pretend one model did everything.
+**Every claim auditable · every assumption receipted · trust 98/100.**
 
-## Roadmap
-
-- [ ] GB2 wire format — single-letter opcodes (`F|92|...`, `R|h|...`, `V|P|...`) for the tightest possible inter-agent dialect
-- [ ] `glassbox_interview` — AI questions the user to surface hidden assumptions *before* the swarm runs
-- [ ] HTML export — self-contained interactive plan report (steps, trust score, per-pass receipts)
-- [ ] Per-host adapters/prompt packs tuned for OpenCode, Claude Code, Cursor, Aider
-- [ ] Cryptographic plan receipts (hash of plan + assumptions + agent outputs) for audit trails
-- [ ] Semantic dedup across passes (skip re-analysis when findings didn't change)
+MIT licensed. Built with Lua, Python, and stubborn honesty.

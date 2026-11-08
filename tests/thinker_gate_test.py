@@ -1,6 +1,7 @@
 """Iron Swarm + Tiny Thinker gate: scout emits 3 relevant lines + 1 junk line;
 analysts must NOT receive the junk line (checked at the HTTP layer)."""
 import json, os, sys, threading
+from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 OUT = {
@@ -47,7 +48,8 @@ threading.Thread(target=srv.serve_forever, daemon=True).start()
 os.environ["GLASSBOX_LLM_BASE"] = f"http://127.0.0.1:{srv.server_address[1]}/v1"
 os.environ["GLASSBOX_LLM_MODEL"] = "test"
 os.environ["GLASSBOX_LLM_KEY"] = "test"
-sys.path.insert(0, r"C:\Users\RYLOY\glassbox\python")
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "python"))
+os.environ.setdefault("GLASSBOX_PYTHON", sys.executable)
 import glassbox_swarm as sw
 
 out = sw.swarm("Design a login rate-limiter for a Node.js API on a single VPS",
