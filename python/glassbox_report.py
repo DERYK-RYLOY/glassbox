@@ -33,9 +33,10 @@ main{max-width:1180px;margin:auto;padding:34px 26px 80px;position:relative;z-ind
 .top{display:flex;align-items:center;gap:18px;padding:16px 22px;border:1px solid var(--line);
      border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent);backdrop-filter:blur(14px);
      box-shadow:0 0 60px rgba(0,229,255,.07),inset 0 1px 0 rgba(255,255,255,.06)}
-.logo{width:46px;height:46px;border-radius:14px;background:conic-gradient(from 210deg,#00e5ff,#8b5cf6,#00e5ff);
-      display:grid;place-items:center;font-weight:900;font-size:22px;color:#05070f;
-      box-shadow:0 0 26px rgba(0,229,255,.45);animation:pulse 3s ease-in-out infinite}
+.logo{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;
+      background:radial-gradient(circle at 50% 40%,rgba(139,92,246,.35),rgba(5,7,15,.2) 70%);
+      box-shadow:0 0 26px rgba(0,229,255,.45);animation:pulse 3s ease-in-out infinite;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:contain}
 @keyframes pulse{0%,100%{box-shadow:0 0 18px rgba(0,229,255,.4)}50%{box-shadow:0 0 34px rgba(139,92,246,.65)}}
 h1{font-size:21px;letter-spacing:.22em;font-weight:800}
 .tag{color:var(--neon);font-size:11px;letter-spacing:.35em;text-transform:uppercase}
@@ -106,7 +107,11 @@ def step_html(step):
       <div class='sver'>verify: {html.escape(str(step.get('verify','')))}</div>
       <span class='risk {risk_cls}'>{risk_cls.upper()} RISK</span></div></div>"""
 
-def report_html(plan, trust=None, receipts=None, source="GLASSBOX AUDIT"):
+def report_html(plan, trust=None, receipts=None, source="GLASSBOX AUDIT", logo_data: str = ""):
+    if not logo_data:
+        logo_path = ROOT / "assets" / "logo.png"
+        import base64
+        logo_data = "data:image/png;base64," + base64.b64encode(logo_path.read_bytes()).decode()
     trust = trust or {"score": 0, "verdict": "UNSCORED", "counts": {}, "issues": []}
     score = int(trust.get("score", 0))
     risks = plan.get("risks", []) or []
@@ -133,7 +138,7 @@ def report_html(plan, trust=None, receipts=None, source="GLASSBOX AUDIT"):
 <title>GLASSBOX COCKPIT - {html.escape(str(plan.get('goal','plan'))[:60])}</title>
 <meta name='viewport' content='width=device-width,initial-scale=1'>
 <style>{CSS}</style></head><body><main>
-<div class='top'><div class='logo'>G</div>
+<div class='top'><div class='logo'><img src='{logo_data}' alt='GLASSBOX'></div>
   <div><h1>GLASSBOX</h1><div class='tag'>cockpit // audited by code, not vibes</div></div>
   <div style='margin-left:auto;text-align:right'><div class='tag' style='color:var(--dim)'>scan</div><div style='font-family:Consolas;font-size:13px'>{html.escape(now)}</div></div>
 </div>
